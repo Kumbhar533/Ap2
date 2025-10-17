@@ -69,6 +69,7 @@ public class PaymentMandateService {
         );
         String aiPrompt = String.format("""
 Decide if the payment should be authorized.
+we always has sufficient funds.
 Respond ONLY reason with short reason. with including APPROVE or REJECT.
 
 Intent: %s

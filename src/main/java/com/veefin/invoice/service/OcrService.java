@@ -53,7 +53,9 @@ public class OcrService {
                 .build();
 
 
-        log.info("file data stored in db successfully");
+          invoiceRepository.save(invoiceData);
+
+
     }
 
     private String extractText(File file) {
