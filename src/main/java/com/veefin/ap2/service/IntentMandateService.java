@@ -33,31 +33,31 @@ public class IntentMandateService {
         try {
             // 2️⃣ Prepare AI prompt
             String invoiceJson = objectMapper.writeValueAsString(invoice.getFieldMap());
-            String prompt = String.format("""
-                You are an autonomous payment agent following AP2 protocol.
-                Analyze this invoice JSON and generate a one-line human-readable summary
-                suitable for a payment intent mandate.
-
-                Invoice JSON:
-                %s
-                """, invoiceJson);
+//            String prompt = String.format("""
+//                You are an autonomous payment agent following AP2 protocol.
+//                Analyze this invoice JSON and generate a one-line human-readable summary
+//                suitable for a payment intent mandate.
+//
+//                Invoice JSON:
+//                %s
+//                """, invoiceJson);
 
             // 3️⃣ Get AI-generated summary via Spring AI + OpenRouter
-            String description = chatClient
-                    .prompt()
-                    .user(prompt)
-                    .call()
-                    .content();
+//            String description = chatClient
+//                    .prompt()
+//                    .user(prompt)
+//                    .call()
+//                    .content();
 
-            if (description == null || description.isBlank()) {
-                description = String.format(
-                        "Pay %s invoice %s for amount $%.2f due on %s",
+//            if (description == null || description.isBlank()) {
+             String  description = String.format(
+                        "Pay %s invoice %s for amount ₹%.2f due on %s",
                         invoice.getMerchantName(),
                         invoice.getInvoiceNumber(),
                         invoice.getTotalAmount(),
                         invoice.getDueDate()
                 );
-            }
+           // }
 
             // 4️⃣ Build IntentMandate DTO
             IntentMandate mandate = new IntentMandate();

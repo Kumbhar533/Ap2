@@ -5,14 +5,12 @@ import com.veefin.ap2.repository.CartMandateRepository;
 import com.veefin.ap2.service.AP2Flow;
 import com.veefin.invoice.entity.InvoiceData;
 import com.veefin.invoice.enums.InvoiceStatus;
-import com.veefin.invoice.repository.InvoiceRepository;
 import com.veefin.invoice.service.InvoiceDataService;
 import com.veefin.razorpay.service.PaymentTransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -30,19 +28,28 @@ public class ConversationalPaymentService {
         try {
 
 
-            String confirmationIntent = analyzeConfirmationIntent(userPrompt);
-            if (confirmationIntent.equals("PROCEED")) {
-                return confirmPendingPayment(userPrompt); // Proceed with payment
-            } else if (confirmationIntent.equals("CANCEL")) {
-                return cancelPendingPayment(userPrompt); // Cancel the cart
+            if(userPrompt.contains("pay")) {
+                String confirmationIntent = analyzeConfirmationIntent(userPrompt);
+                if (confirmationIntent.equals("PROCEED")) {
+                    return confirmPendingPayment(userPrompt); // Proceed with payment
+                }
             }
-            // Step 1: Determine user intent using AI
+            //
+                // Step 1: Determine user intent using AI
+//            String intentPrompt = String.format("""
+//            Analyze this user message and determine the intent.
+//            Return ONLY one of these: GET_INVOICES, PAY_INVOICE, GET_PAYMENT_HISTORY, UNKNOWN
+//
+//            User message: %s
+//            """, userPrompt);
+
+
+
             String intentPrompt = String.format("""
-            Analyze this user message and determine the intent.
-            Return ONLY one of these: GET_INVOICES, PAY_INVOICE, GET_PAYMENT_HISTORY, UNKNOWN
-            
-            User message: %s
-            """, userPrompt);
+                              Respond with **exactly one word**, no explanation or punctuation. Only choose from as per user message intent:
+                             GET_INVOICES, PAY_INVOICE, GET_PAYMENT_HISTORY,UNKNOWN
+                             User message: %s
+                             """, userPrompt);
 
             String intent = Objects.requireNonNull(chatClient.prompt()
                             .user(intentPrompt)
@@ -53,8 +60,7 @@ public class ConversationalPaymentService {
             // Step 2: Handle based on intent
             return switch (intent) {
                 case "GET_INVOICES" -> invoiceDataService.getAllInvoicesResponse();
-                case "PAY_INVOICE" -> processPaymentRequest(userPrompt);
-                case "GET_PAYMENT_HISTORY" -> processPaymentHistoryRequest(userPrompt);
+                case "GET_PAYMENT_HISTORY","PAYMENT_HISTORY" -> processPaymentHistoryRequest(userPrompt);
                 default -> generateGeneralResponse(userPrompt);            };
 
         } catch (Exception e) {
@@ -67,15 +73,16 @@ public class ConversationalPaymentService {
     private String analyzeConfirmationIntent(String userPrompt) {
         String aiPrompt = String.format("""
         You are an AI assistant interpreting user confirmations.
-        Determine if the user wants to PROCEED, CANCEL, or is UNCLEAR.
+        Determine if the user wants to CONFIRM a payment or cancel it.
 
-        Examples:
-        - "yes", "ok", "go ahead" → PROCEED
-        - "no", "cancel", "stop" → CANCEL
-        - ambiguous text → UNCLEAR
+        Rules:
+        - If the user clearly indicates agreement to pay (e.g., "yes please pay","yes pay", "confirm payment", "go ahead with payment"), respond with PROCEED.
+        - If the user says no, cancel, or refuses payment, respond with CANCEL.
+        - If the user is unclear or just saying 'yes' without referring to payment, respond with UNCLEAR.
+
+        Respond with ONLY one word: PROCEED, CANCEL, or UNCLEAR.
 
         User message: "%s"
-        Respond with ONLY one word: PROCEED, CANCEL, or UNCLEAR.
         """, userPrompt);
         try {
             String decision = Objects.requireNonNull(chatClient.prompt()
@@ -98,14 +105,25 @@ public class ConversationalPaymentService {
     private String processPaymentHistoryRequest(String userPrompt) {
         try {
             // Extract specific invoice identifier if mentioned
+//            String extractPrompt = String.format("""
+//            Check if user is asking for payment history of a specific invoice.
+//            If yes, extract the invoice identifier (number, merchant name, or ID).
+//            If asking for all payment history, return "ALL".
+//            If no specific invoice mentioned, return "ALL".
+//
+//            User request: %s
+//            """, userPrompt);
+
+
             String extractPrompt = String.format("""
-            Check if user is asking for payment history of a specific invoice.
-            If yes, extract the invoice identifier (number, merchant name, or ID).
-            If asking for all payment history, return "ALL".
-            If no specific invoice mentioned, return "ALL".
-            
-            User request: %s
-            """, userPrompt);
+                  Return exactly one word/phrase:
+                 - invoice identifier (number or merchant name) if specified
+                 - otherwise return ALL as per user request intent.
+
+User request: %s
+""", userPrompt);
+
+
 
             String identifier = Objects.requireNonNull(chatClient.prompt()
                             .user(extractPrompt)
@@ -125,32 +143,32 @@ public class ConversationalPaymentService {
     }
 
 
-    public String processPaymentRequest(String userPrompt) {
+    public String processPaymentRequest( InvoiceData invoice) {
         try {
-            String extractPrompt = String.format("""
-                Extract the invoice identifier from this payment request.
-                Look for invoice number, merchant name, or invoice ID.
-                Return the exact identifier found, or "NOT_FOUND" if none.
-                
-                User request: %s
-                """, userPrompt);
+//            String extractPrompt = String.format("""
+//                Extract the invoice identifier from this payment request.
+//                Look for invoice number, merchant name, or invoice ID.
+//                Return the exact identifier found, or "NOT_FOUND" if none.
+//
+//                User request: %s
+//                """, userPrompt);
+//
+//            String identifier = Objects.requireNonNull(chatClient.prompt()
+//                            .user(extractPrompt)
+//                            .call()
+//                            .content())
+//                    .trim();
+//
+//            if ("NOT_FOUND".equals(identifier)) {
+//                return "I couldn't identify which invoice to pay. Please specify invoice number, merchant name, or invoice ID.";
+//            }
+//
+//            // Find invoice by identifier
+//            InvoiceData invoice = invoiceDataService.findInvoiceByIdentifier(identifier);
 
-            String identifier = Objects.requireNonNull(chatClient.prompt()
-                            .user(extractPrompt)
-                            .call()
-                            .content())
-                    .trim();
-
-            if ("NOT_FOUND".equals(identifier)) {
-                return "I couldn't identify which invoice to pay. Please specify invoice number, merchant name, or invoice ID.";
-            }
-
-            // Find invoice by identifier
-            InvoiceData invoice = invoiceDataService.findInvoiceByIdentifier(identifier);
-
-            if (invoice == null) {
-                return String.format(" Invoice '%s' not found. Use 'get all invoices' to see available invoices.", identifier);
-            }
+//            if (invoice == null) {
+//                return String.format(" Invoice '%s' not found. Use 'get all invoices' to see available invoices.", identifier);
+//            }
 
             if(invoice.getStatus() == InvoiceStatus.PAID){
                 return " Invoice already paid. Please check payment history.";
@@ -204,38 +222,89 @@ public class ConversationalPaymentService {
      * User confirms payment → execute Razorpay simulation
      */
     private String confirmPendingPayment(String userPrompt) {
-        CartMandate pendingCart = cartMandateRepository.findTopByStatusOrderByCreatedAtDesc("PENDING");
+
+
+//        String extractPrompt = String.format("""
+//                Extract the invoice identifier from this payment request.
+//                Look for invoice number, merchant name, or invoice ID.
+//                Return the exact identifier found, or "NOT_FOUND" if none as per user request intent.
+//
+//                User request: %s
+//                """, userPrompt);
+
+
+        String extractPrompt = String.format("""
+           Extract the invoice identifier (number, merchant name, or ID) from the user's request.
+           If no identifier is present, return "ALL"
+           Respond with exactly one word or phrase
+           User request: %s
+           """, userPrompt);
+
+        String identifier = Objects.requireNonNull(chatClient.prompt()
+                        .user(extractPrompt)
+                        .call()
+                        .content())
+                .trim();
+
+//        if ("NOT_FOUND".equals(identifier)) {
+//            return "I couldn't identify which invoice to pay. Please specify invoice number, merchant name, or invoice ID.";
+//        }
+
+        // Find invoice by identifier
+        InvoiceData invoice = invoiceDataService.findInvoiceByIdentifier(identifier);
+
+        CartMandate pendingCart = cartMandateRepository.findTopByInvoiceUuidAndStatusOrderByCreatedAtDesc(invoice.getUuid(),"PENDING");
 
         if (pendingCart == null) {
-            return "No pending payment to confirm.";
+           return processPaymentRequest(invoice);
         }
         try {
             pendingCart.setStatus("CONFIRMED");
             cartMandateRepository.save(pendingCart);
 
             ap2Flow.executePaymentFlow(pendingCart.getInvoiceUuid());
-            return "Payment confirmed and processed successfully for invoice " + pendingCart.getInvoiceNumber();
+            return String.format("""
+                         ==================================================
+                                          PAYMENT RECEIPT
+                         ==================================================
 
+                          Invoice Number : %s
+                          Merchant       : %s
+                          Amount Paid    : ₹%.2f
+                          Payment Method : Razorpay
+                          Status         : Completed
+                          Date/Time      : %s
+
+                        --------------------------------------------------
+                        To view your transaction history, type:
+                        "show payment history"
+                        ==================================================
+""",
+                    pendingCart.getInvoiceNumber(),
+                    pendingCart.getFromMerchant(),
+                    pendingCart.getAmount(),
+                    java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm"))
+            );
         } catch (Exception e) {
             return " Payment failed: " + e.getMessage();
         }
     }
 
-    /**
-     * User cancels pending payment
-     */
-    private String cancelPendingPayment(String userPrompt) {
-        CartMandate pendingCart = cartMandateRepository.findTopByStatusOrderByCreatedAtDesc("PENDING");
-
-        if (pendingCart == null) {
-            return "No pending payment found to cancel.";
-        }
-
-        pendingCart.setStatus("CANCELLED");
-        cartMandateRepository.save(pendingCart);
-
-        return " Payment cancelled successfully for invoice " + pendingCart.getInvoiceNumber();
-    }
+//    /**
+//     * User cancels pending payment
+//     */
+//    private String cancelPendingPayment(String userPrompt) {
+//        CartMandate pendingCart = cartMandateRepository.findTopByStatusOrderByCreatedAtDesc("PENDING");
+//
+//        if (pendingCart == null) {
+//            return "No pending payment found to cancel.";
+//        }
+//
+//        pendingCart.setStatus("CANCELLED");
+//        cartMandateRepository.save(pendingCart);
+//
+//        return " Payment cancelled successfully for invoice " + pendingCart.getInvoiceNumber();
+//    }
 
 
 
@@ -244,7 +313,7 @@ public class ConversationalPaymentService {
         You are a friendly AI assistant.
         The user said: "%s"
         
-        Respond naturally and helpfully — it could be any topic: tech, jokes, advice, or casual talk.
+        Respond naturally and helpfully — it could be any topic: tech, finance, advice, or casual talk.
         Keep your reply concise and conversational.
         """, userPrompt);
 

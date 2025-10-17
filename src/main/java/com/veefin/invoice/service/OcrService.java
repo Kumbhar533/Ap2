@@ -1,9 +1,11 @@
 package com.veefin.invoice.service;
 
 import com.veefin.invoice.entity.InvoiceData;
+import com.veefin.invoice.enums.InvoiceStatus;
 import com.veefin.invoice.repository.InvoiceRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -15,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OcrService {
@@ -29,7 +32,7 @@ public class OcrService {
     @Value("${ghostscript.path:}")
     private String ghostscriptPath;
 
-    public InvoiceData processInvoice(File pdfFile) throws IOException {
+    public void processInvoice(File pdfFile) throws IOException {
         String extractedText = extractText(pdfFile);
 
         // Step 2: Parse key invoice fields (via regex/AI)
@@ -44,12 +47,13 @@ public class OcrService {
                 .invoiceNumber(fieldMap.getOrDefault("invoice_number", "N/A"))
                 .totalAmount(Double.valueOf(totalAmountStr))
                 .dueDate(fieldMap.getOrDefault("due_date", "N/A"))
+                .status(InvoiceStatus.PENDING)
                 .rawText(extractedText)
                 .fieldMap(fieldMap)
                 .build();
 
 
-        return invoiceRepository.save(invoiceData);
+        log.info("file data stored in db successfully");
     }
 
     private String extractText(File file) {

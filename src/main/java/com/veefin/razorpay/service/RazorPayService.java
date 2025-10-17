@@ -29,7 +29,7 @@ public class RazorPayService {
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
 
-    public String createOrder(Double amount, String currency, String receipt, String invoiceUuid) throws RazorpayException {
+    public String createOrder(Double amount, String currency, String receipt, String invoiceUuid, String merchantName) throws RazorpayException {
         RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
         JSONObject orderRequest = new JSONObject();
         orderRequest.put("amount", amount*100);
@@ -41,11 +41,11 @@ public class RazorPayService {
         log.info("Order created successfully. Order ID: {}", orderId);
 
         // Auto-simulate UPI payment
-        return simulateUpiPayment(orderId, amount, invoiceUuid);
+        return simulateUpiPayment(orderId, amount, invoiceUuid, merchantName);
     }
 
 
-    public String simulateUpiPayment(String orderId, double amount, String invoiceUuid) {
+    public String simulateUpiPayment(String orderId, double amount, String invoiceUuid, String merchantName) {
         try {
             // Mock payment simulation (no actual Razorpay payment API call)
             String mockPaymentId = "pay_mock_" + System.currentTimeMillis();

@@ -41,7 +41,7 @@ public class InvoiceData {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private InvoiceStatus status;
+    private InvoiceStatus status= InvoiceStatus.PENDING;
 
     @Column(name = "raw_text", columnDefinition = "TEXT")
     private String rawText;

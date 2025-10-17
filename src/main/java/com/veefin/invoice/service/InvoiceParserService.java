@@ -126,28 +126,4 @@ public class InvoiceParserService {
 
 
 
-
-
-//    public Map<String, String> parseInvoiceFields(String text) {
-//        Map<String, String> result = new HashMap<>();
-//
-//        // Updated regex patterns for your invoice format
-//        result.put("invoice_number", findMatch("Invoice\\s*#?\\s*:?\\s*([A-Z0-9-]+)", text));
-//        result.put("total_amount", findMatch("(?:Total\\s*Amount|Amount\\s*Due)\\s*:?\\s*([0-9,.]+)", text));
-//        result.put("due_date", findMatch("Due\\s*Date\\s*:?\\s*([0-9]{1,2}-[A-Za-z]{3}-[0-9]{4})", text));
-//        result.put("merchant_name", findMatch("^([A-Za-z\\s]+(?:Pvt\\s*Ltd|Ltd|Inc|Corp))", text));
-//
-//        return result;
-//    }
-//
-//    private String findMatch(String regex, String text) {
-//        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-//        Matcher matcher = pattern.matcher(text);
-//        if (matcher.find()) {
-//            return matcher.group(1).trim();
-//        }
-//        return "Unknown";
-//    }
-
-
 }

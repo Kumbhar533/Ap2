@@ -51,21 +51,41 @@ public class PaymentMandateService {
         }
 
         // 2️⃣ AI validation reasoning (optional but cool)
+//        String aiPrompt = String.format("""
+//            You are an AI payment validator.
+//            Review the following intent and invoice data.
+//            Tell whether this payment should be authorized or not.
+//
+//            INTENT: %s
+//            INVOICE: %s
+//            """, intent.getNaturalLanguageDescription(), invoice.toString());
+
+        String invoiceDescription = String.format(
+                "Pay %s invoice %s for amount ₹%.2f due on %s",
+                invoice.getMerchantName(),
+                invoice.getInvoiceNumber(),
+                invoice.getTotalAmount(),
+                invoice.getDueDate()
+        );
         String aiPrompt = String.format("""
-            You are an AI payment validator.
-            Review the following intent and invoice data.
-            Tell whether this payment should be authorized or not.
+Decide if the payment should be authorized.
+Respond ONLY reason with short reason. with including APPROVE or REJECT.
 
-            INTENT: %s
-            INVOICE: %s
-            """, intent.getNaturalLanguageDescription(), invoice.toString());
-
+Intent: %s
+Invoice: %s
+""", intent.getNaturalLanguageDescription(), invoiceDescription);
         String aiDecision =generateIntentSummary(aiPrompt);
         System.out.println(" AI Decision: " + aiDecision);
+        System.err.println("-----------------------------------------------");
+
+        System.err.println(invoiceDescription);
+
+        System.err.println("-----------------------------------------------");
+        System.err.println(intent.getNaturalLanguageDescription());
 
 
-        if (aiDecision.toUpperCase().contains("REJECTED")) {
-            throw new RuntimeException("AI validation failed: " + aiDecision);
+        if (aiDecision.toUpperCase().contains("REJECT")) {
+            throw new ValidationException("AI validation failed: " + aiDecision);
         }
 
         // Create PaymentMandateContents

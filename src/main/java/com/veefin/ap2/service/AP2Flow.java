@@ -32,7 +32,7 @@ public class AP2Flow {
                     paymentMandate.getPaymentMandateContents().getTotalAmount(),
                     "INR",
                     paymentMandate.getPaymentMandateContents().getPaymentMandateId(),
-                    invoiceUuid
+                    invoiceUuid,intent.getMerchantName()
             );
             System.out.println("AI initiated payment: " + orderResponse);
         } catch (Exception e) {
