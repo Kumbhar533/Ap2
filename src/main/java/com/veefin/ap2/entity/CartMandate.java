@@ -22,38 +22,32 @@ public class CartMandate {
     @Column(name = "uuid", length = 50, nullable = false, unique = true)
     private String uuid;
 
+    @Column(name = "cart_id", unique = true)
+    private String cartId;
+
+    @Column(name = "intent_hash")
+    private String intentHash; // Links back to Intent Mandate
+
     @Column(name = "invoice_uuid")
     private String invoiceUuid;
 
-    @Column(name = "invoice_number")
-    private String invoiceNumber;
+    @Column(name = "cart_hash")
+    private String cartHash; // SHA256 of cart JSON
 
-    @Column(name = "from_merchant")
-    private String fromMerchant;
+    @Column(name = "cart_json", columnDefinition = "TEXT")
+    private String cartJson; // Full cart JSON
 
-    @Column(name = "to_account")
-    private String toAccount;
+    @Column(name = "backend_signature", columnDefinition = "TEXT")
+    private String backendSignature; // Backend's signature (NOT user's)
 
-    @Column(name = "amount")
-    private Double amount;
-
-    @Column(name = "currency")
-    private String currency;
-
-    @Column(name = "payment_method")
-    private String paymentMethod; // UPI, CARD, etc.
-
-    @Column(name = "upi_id")
-    private String upiId;
-
-    @Column(name = "due_date")
-    private String dueDate;
+    @Column(name = "total_amount")
+    private Double totalAmount;
 
     @Column(name = "status")
-    private String status; // PENDING, CONFIRMED, CANCELLED
+    private String status; // CREATED, CONFIRMED, PROCESSED
 
-    @Column(name = "user_session")
-    private String userSession; // To track which user's cart
+    @Column(name = "timestamp")
+    private String timestamp;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -67,4 +61,5 @@ public class CartMandate {
             uuid = java.util.UUID.randomUUID().toString();
         }
     }
+
 }

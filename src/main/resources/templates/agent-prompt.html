@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Braintree Checkout</title>
+    <script src="https://js.braintreegateway.com/web/dropin/1.33.4/js/dropin.min.js"></script>
+    <style>
+        #dropin-container {
+          max-width: 400px;
+          margin: 40px auto;
+          padding: 20px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+        }
+        #submit-button {
+          display: block;
+          margin: 20px auto;
+          padding: 10px 20px;
+          font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="dropin-container"></div>
+<button id="submit-button">Pay Now</button>
+
+<script>
+    // Replace with your backend-generated client token
+    const clientToken = "eyJ2ZXJzaW9uIjoyLCJhdXRob3JpemF0aW9uRmluZ2VycHJpbnQiOiJleUowZVhBaU9pSktWMVFpTENKaGJHY2lPaUpGVXpJMU5pSXNJbXRwWkNJNklqSXdNVGd3TkRJMk1UWXRjMkZ1WkdKdmVDSXNJbWx6Y3lJNkltaDBkSEJ6T2k4dllYQnBMbk5oYm1SaWIzZ3VZbkpoYVc1MGNtVmxaMkYwWlhkaGVTNWpiMjBpZlEuZXlKbGVIQWlPakUzTmpFMk56WXpOVE1zSW1wMGFTSTZJalEyT0dJMU5HTXlMV1ZtTjJNdE5ESm1aUzFpTWpVeUxUUmpaalV6T0dGaE5qY3dOaUlzSW5OMVlpSTZJalk0Y1RkdU9HaG1hRGR1Y2pOdE5tTWlMQ0pwYzNNaU9pSm9kSFJ3Y3pvdkwyRndhUzV6WVc1a1ltOTRMbUp5WVdsdWRISmxaV2RoZEdWM1lYa3VZMjl0SWl3aWJXVnlZMmhoYm5RaU9uc2ljSFZpYkdsalgybGtJam9pTmpoeE4yNDRhR1pvTjI1eU0yMDJZeUlzSW5abGNtbG1lVjlqWVhKa1gySjVYMlJsWm1GMWJIUWlPbVpoYkhObExDSjJaWEpwWm5sZmQyRnNiR1YwWDJKNVgyUmxabUYxYkhRaU9tWmhiSE5sZlN3aWNtbG5hSFJ6SWpwYkltMWhibUZuWlY5MllYVnNkQ0pkTENKelkyOXdaU0k2V3lKQ2NtRnBiblJ5WldVNlZtRjFiSFFpTENKQ2NtRnBiblJ5WldVNlEyeHBaVzUwVTBSTElsMHNJbTl3ZEdsdmJuTWlPbnNpWTNWemRHOXRaWEpmYVdRaU9pSTRNRE0wT0RVeE56QXhOaUo5ZlEuaTZsUElFZmxlTTJzTTRsTm02Z2VxUHlLUXJGamkyb1pNN1VGX3h0LU1jZndZVDU1eVYyTWliSFUtbWRYNkRHWF9POWpWWHhpV1BiT1had2lKanl3R2c/Y3VzdG9tZXJfaWQ9IiwiY29uZmlnVXJsIjoiaHR0cHM6Ly9hcGkuc2FuZGJveC5icmFpbnRyZWVnYXRld2F5LmNvbTo0NDMvbWVyY2hhbnRzLzY4cTduOGhmaDducjNtNmMvY2xpZW50X2FwaS92MS9jb25maWd1cmF0aW9uIiwiZ3JhcGhRTCI6eyJ1cmwiOiJodHRwczovL3BheW1lbnRzLnNhbmRib3guYnJhaW50cmVlLWFwaS5jb20vZ3JhcGhxbCIsImRhdGUiOiIyMDE4LTA1LTA4IiwiZmVhdHVyZXMiOlsidG9rZW5pemVfY3JlZGl0X2NhcmRzIl19LCJoYXNDdXN0b21lciI6dHJ1ZSwiY2xpZW50QXBpVXJsIjoiaHR0cHM6Ly9hcGkuc2FuZGJveC5icmFpbnRyZWVnYXRld2F5LmNvbTo0NDMvbWVyY2hhbnRzLzY4cTduOGhmaDducjNtNmMvY2xpZW50X2FwaSIsImVudmlyb25tZW50Ijoic2FuZGJveCIsIm1lcmNoYW50SWQiOiI2OHE3bjhoZmg3bnIzbTZjIiwiYXNzZXRzVXJsIjoiaHR0cHM6Ly9hc3NldHMuYnJhaW50cmVlZ2F0ZXdheS5jb20iLCJhdXRoVXJsIjoiaHR0cHM6Ly9hdXRoLnZlbm1vLnNhbmRib3guYnJhaW50cmVlZ2F0ZXdheS5jb20iLCJ2ZW5tbyI6Im9mZiIsImNoYWxsZW5nZXMiOltdLCJ0aHJlZURTZWN1cmVFbmFibGVkIjp0cnVlLCJhbmFseXRpY3MiOnsidXJsIjoiaHR0cHM6Ly9vcmlnaW4tYW5hbHl0aWNzLXNhbmQuc2FuZGJveC5icmFpbnRyZWUtYXBpLmNvbS82OHE3bjhoZmg3bnIzbTZjIn0sInBheXBhbEVuYWJsZWQiOnRydWUsInBheXBhbCI6eyJiaWxsaW5nQWdyZWVtZW50c0VuYWJsZWQiOnRydWUsImVudmlyb25tZW50Tm9OZXR3b3JrIjp0cnVlLCJ1bnZldHRlZE1lcmNoYW50IjpmYWxzZSwiYWxsb3dIdHRwIjp0cnVlLCJkaXNwbGF5TmFtZSI6InZlZWZpbiIsImNsaWVudElkIjpudWxsLCJiYXNlVXJsIjoiaHR0cHM6Ly9hc3NldHMuYnJhaW50cmVlZ2F0ZXdheS5jb20iLCJhc3NldHNVcmwiOiJodHRwczovL2NoZWNrb3V0LnBheXBhbC5jb20iLCJkaXJlY3RCYXNlVXJsIjpudWxsLCJlbnZpcm9ubWVudCI6Im9mZmxpbmUiLCJicmFpbnRyZWVDbGllbnRJZCI6Im1hc3RlcmNsaWVudDMiLCJtZXJjaGFudEFjY291bnRJZCI6InZlZWZpbiIsImN1cnJlbmN5SXNvQ29kZSI6IlVTRCJ9fQ=="
+    braintree.dropin.create({
+      authorization: clientToken,
+      container: '#dropin-container'
+    }, function (createErr, instance) {
+      if (createErr) {
+        console.error('Drop-in creation error:', createErr);
+        return;
+      }
+
+      document.querySelector('#submit-button').addEventListener('click', function () {
+        instance.requestPaymentMethod(function (err, payload) {
+          if (err) {
+            console.error('Payment method error:', err);
+            return;
+          }
+
+          // Send payload.nonce to your Spring Boot backend
+          console.log('Payment nonce:', payload.nonce);
+
+          fetch('/api/vault-payment-method', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nonce: payload.nonce })
+          })
+          .then(response => response.json())
+          .then(data => {
+            alert('Payment method vaulted successfully!');
+            console.log(data);
+          })
+          .catch(error => {
+            console.error('Vaulting error:', error);
+          });
+        });
+      });
+    });
+</script>
+
+</body>
+</html>

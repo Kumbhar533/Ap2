@@ -1,4 +1,4 @@
-package com.veefin.razorpay.entity;
+package com.veefin.payment_gateway.entity.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,11 +28,9 @@ public class PaymentTransaction {
     @Column(name = "invoice_uuid")
     private String invoiceUuid;
 
-    @Column(name = "razorpay_order_id")
-    private String razorpayOrderId;
+    @Column(name = "transaction_id")
+    private String transactionId;
 
-    @Column(name = "razorpay_payment_id")
-    private String razorpayPaymentId;
 
     @Column(name = "amount")
     private Double amount;
@@ -43,11 +41,20 @@ public class PaymentTransaction {
     @Column(name = "payment_method")
     private String paymentMethod; // UPI, CARD, etc.
 
+    @Column(name = "from_account")
+    private String fromAccount; // Payer's account (UPI ID, Card number, etc.)
+
+    @Column(name = "to_account")
+    private String toAccount; // Merchant's account
+
+    @Column(name = "from_account_type")
+    private String fromAccountType; // UPI, BANK_ACCOUNT, CARD
+
+    @Column(name = "to_account_type")
+    private String toAccountType; // MERCHANT_ACCOUNT, BANK_ACCOUNT
+
     @Column(name = "status")
     private String status; // SUCCESS, FAILED, PENDING
-
-    @Column(name = "razorpay_response", columnDefinition = "TEXT")
-    private String razorpayResponse;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

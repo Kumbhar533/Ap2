@@ -12,10 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
-
 @RequiredArgsConstructor
 @Service
 public class IntentMandateService {
@@ -24,72 +20,81 @@ public class IntentMandateService {
     private final InvoiceDataService invoiceDataService;
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final CryptographicService cryptoService;
+    private final AuditLogService auditService;
 
-    public IntentMandate createIntentForInvoice(String uuid) {
-        // 1️⃣ Fetch invoice data
+    public void createIntentForInvoice(String uuid, String userSignedIntentJSON, String intentHash, String userSignature) {
         InvoiceData invoice = invoiceDataService.getInvoiceById(uuid);
-        if (invoice == null) throw new ResourceNotFoundException("Invoice not found");
+        if (invoice == null) {
+            auditService.logIntentEvent("CREATE", intentHash, uuid, "SYSTEM", false,
+                    "Invoice not found", null, null);
+            throw new ResourceNotFoundException("Invoice not found");
+        }
 
         try {
-            // 2️⃣ Prepare AI prompt
-            String invoiceJson = objectMapper.writeValueAsString(invoice.getFieldMap());
-//            String prompt = String.format("""
-//                You are an autonomous payment agent following AP2 protocol.
-//                Analyze this invoice JSON and generate a one-line human-readable summary
-//                suitable for a payment intent mandate.
-//
-//                Invoice JSON:
-//                %s
-//                """, invoiceJson);
+            // 🔍 AUDIT: Intent creation started
+            auditService.logIntentEvent("CREATE", intentHash, uuid, "demo-user", false,
+                    "Intent creation started", invoice.getTotalAmount(), invoice.getMerchantName());
 
-            // 3️⃣ Get AI-generated summary via Spring AI + OpenRouter
-//            String description = chatClient
-//                    .prompt()
-//                    .user(prompt)
-//                    .call()
-//                    .content();
+            // 2️⃣ Verify user's signature on Intent Mandate
+            boolean verified = cryptoService.verifyUserSignature(userSignedIntentJSON, userSignature);
 
-//            if (description == null || description.isBlank()) {
-             String  description = String.format(
-                        "Pay %s invoice %s for amount ₹%.2f due on %s",
-                        invoice.getMerchantName(),
-                        invoice.getInvoiceNumber(),
-                        invoice.getTotalAmount(),
-                        invoice.getDueDate()
-                );
-           // }
+            // 🔍 AUDIT: Signature verification
+            auditService.logSignatureVerification(
+                    com.veefin.ap2.entity.AP2AuditLog.MandateType.INTENT,
+                    intentHash,
+                    "demo-user",
+                    verified,
+                    userSignature.length() > 20 ? userSignature.substring(0, 20) + "..." : userSignature
+            );
 
-            // 4️⃣ Build IntentMandate DTO
-            IntentMandate mandate = new IntentMandate();
-            mandate.setId(UUID.randomUUID().toString());
-            mandate.setNaturalLanguageDescription(description);
-            mandate.setMerchantName(invoice.getMerchantName());
-            mandate.setAmount(invoice.getTotalAmount());
-            mandate.setCurrency("INR");
-            mandate.setIntentExpiry(LocalDateTime.now().plusDays(7)
-                    .format(DateTimeFormatter.ISO_DATE_TIME));
-            mandate.setRequiresRefundability(false);
+            if (!verified) {
+                auditService.logIntentEvent("CREATE", intentHash, uuid, "demo-user", false,
+                        "User signature verification failed", invoice.getTotalAmount(), invoice.getMerchantName());
+                throw new ValidationException("User signature verification failed");
+            }
 
-            // 5️⃣ Simulate signing (JWT)
-            String simulatedJwt = JwtSimulator.sign(mandate);
-            mandate.setUserAuthorization(simulatedJwt);
+            // 3️⃣ Parse user's intent JSON
+            IntentMandate mandate = objectMapper.readValue(userSignedIntentJSON, IntentMandate.class);
+            auditService.logIntentEvent("VALIDATE", intentHash, uuid, "demo-user", true,
+                    "User intent parsed successfully", invoice.getTotalAmount(), invoice.getMerchantName());
 
-            // 6️⃣ Persist entity
+            // 4️⃣ Validate intent against invoice
+            if (!mandate.getMerchantName().equals(invoice.getMerchantName()) ||
+                    !mandate.getAmount().equals(invoice.getTotalAmount())) {
+
+                auditService.logIntentEvent("VALIDATE", intentHash, uuid, "demo-user", false,
+                        "Intent mismatch: merchant or amount", invoice.getTotalAmount(), invoice.getMerchantName());
+                throw new ValidationException("Intent doesn't match invoice");
+            }
+
+            auditService.logIntentEvent("VALIDATE", intentHash, uuid, "demo-user", true,
+                    "Intent matches invoice", invoice.getTotalAmount(), invoice.getMerchantName());
+
+            // 5️⃣ Store intent with user's signature
             IntentMandateEntity entity = new IntentMandateEntity();
-            entity.setInvoiceNumber(invoice.getInvoiceNumber());
+            entity.setInvoiceUuid(invoice.getUuid());
             entity.setMerchantName(invoice.getMerchantName());
             entity.setAmount(invoice.getTotalAmount());
             entity.setCurrency("INR");
-            entity.setNaturalLanguageDescription(description);
+            entity.setNaturalLanguageDescription(mandate.getNaturalLanguageDescription());
             entity.setIntentExpiry(mandate.getIntentExpiry());
             entity.setRequiresRefundability(false);
-            entity.setUserAuthorization(simulatedJwt);
+            entity.setUserAuthorization(userSignature);
+            entity.setIntentHash(intentHash);
             intentRepo.save(entity);
 
-            return mandate;
+            // 🔍 AUDIT: Intent creation successful
+            auditService.logIntentEvent("CREATE", intentHash, uuid, "demo-user", true,
+                    "Intent mandate stored successfully", invoice.getTotalAmount(), invoice.getMerchantName());
 
         } catch (Exception e) {
-            throw new ValidationException("AI failed to create intent mandate: " + e.getMessage(), e);
+            // 🔍 AUDIT: Intent creation failed
+            auditService.logIntentEvent("CREATE", intentHash, uuid, "SYSTEM", false,
+                    "Intent mandate processing failed: " + e.getMessage(),
+                    invoice.getTotalAmount(),
+                    invoice.getMerchantName());
+            throw new ValidationException("Intent mandate processing failed: " + e.getMessage(), e);
         }
     }
 }

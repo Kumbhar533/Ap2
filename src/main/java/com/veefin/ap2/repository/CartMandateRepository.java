@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface CartMandateRepository extends JpaRepository<CartMandate, Long> {
 
     CartMandate findTopByInvoiceUuidAndStatusOrderByCreatedAtDesc( String uuid,String status);
+    CartMandate findByCartId(String cartId);
 
 }

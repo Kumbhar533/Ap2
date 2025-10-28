@@ -95,23 +95,37 @@ public class InvoiceParserService {
 
 
 
-        private String extractDueDate(String text) {
-            // Look for date patterns
-            Pattern[] datePatterns = {
-                    Pattern.compile("([0-9]{1,2}[-/][A-Za-z]{3}[-/][0-9]{4})"),
-                    Pattern.compile("([0-9]{1,2}[-/][0-9]{1,2}[-/][0-9]{4})"),
-                    Pattern.compile("([0-9]{4}[-/][0-9]{1,2}[-/][0-9]{1,2})")
-            };
+    private String extractDueDate(String text) {
+        // First, try to find dates near "Due Date" keywords
+        Pattern contextPattern = Pattern.compile("Due\\s*Date[^0-9]*([0-9]{1,2}[-/][A-Za-z]{3}[-/][0-9]{4}|[0-9]{1,2}[-/][0-9]{1,2}[-/][0-9]{4}|[0-9]{4}[-/][0-9]{1,2}[-/][0-9]{1,2})", Pattern.CASE_INSENSITIVE);
+        Matcher contextMatcher = contextPattern.matcher(text);
 
-            for (Pattern pattern : datePatterns) {
-                Matcher matcher = pattern.matcher(text);
-                if (matcher.find()) {
-                    return cleanValue(matcher.group(1));
+        if (contextMatcher.find()) {
+            return cleanValue(contextMatcher.group(1));
+        }
+
+        // Fallback: Look for date patterns but skip Issue Date
+        Pattern[] datePatterns = {
+                Pattern.compile("([0-9]{1,2}[-/][A-Za-z]{3}[-/][0-9]{4})"),
+                Pattern.compile("([0-9]{1,2}[-/][0-9]{1,2}[-/][0-9]{4})"),
+                Pattern.compile("([0-9]{4}[-/][0-9]{1,2}[-/][0-9]{1,2})")
+        };
+
+        for (Pattern pattern : datePatterns) {
+            Matcher matcher = pattern.matcher(text);
+            while (matcher.find()) {
+                String candidate = matcher.group(1);
+                // Skip if this date appears near "Issue Date"
+                int start = matcher.start();
+                String context = text.substring(Math.max(0, start - 20), Math.min(text.length(), start + candidate.length() + 20));
+                if (!context.toLowerCase().contains("issue")) {
+                    return cleanValue(candidate);
                 }
             }
-
-            return "Unknown";
         }
+
+        return "Unknown";
+    }
 
     private String cleanValue(String value) {
         if (value == null) return "Unknown";

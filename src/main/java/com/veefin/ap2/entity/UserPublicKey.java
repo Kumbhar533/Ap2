@@ -10,11 +10,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "user_public_keys")
 @Data
-@Table(name = "intent_mandate")
 @AllArgsConstructor
 @NoArgsConstructor
-public class IntentMandateEntity {
+public class UserPublicKey {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,32 +23,20 @@ public class IntentMandateEntity {
     @Column(name = "uuid", length = 50, nullable = false, unique = true, updatable = false)
     private String uuid;
 
-    @Column(name = "intent_hash", unique = true)
-    private String intentHash; // SHA256 of user's intent JSON
+    @Column(name = "user_id", nullable = false, unique = true)
+    private String userId;
 
-    @Column(name = "invoice_uuid")
-    private String invoiceUuid;
+    @Column(name = "public_key", nullable = false, columnDefinition = "TEXT")
+    private String publicKey;
 
-    @Column(name = "merchant_name")
-    private String merchantName;
+    @Column(name = "key_algorithm", length = 20)
+    private String keyAlgorithm = "RSA";
 
-    @Column(name = "total_amount")
-    private Double amount;
+    @Column(name = "key_size")
+    private Integer keySize = 2048;
 
-    @Column(name = "currency")
-    private String currency;
-
-    @Column(name = "natural_language_description")
-    private String naturalLanguageDescription;
-
-    @Column(name = "intent_expiry")
-    private String intentExpiry;
-
-    @Column(name = "requires_refundability")
-    private boolean requiresRefundability;
-
-    @Column(name = "user_authorization", columnDefinition = "TEXT")
-    private String userAuthorization; // USER'S signature (not backend's)
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 
     @Column(name = "created_at")
     @CreationTimestamp

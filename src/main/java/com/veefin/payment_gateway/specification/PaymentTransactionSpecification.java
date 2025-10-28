@@ -1,6 +1,6 @@
-package com.veefin.razorpay.specification;
+package com.veefin.payment_gateway.specification;
 
-import com.veefin.razorpay.entity.PaymentTransaction;
+import com.veefin.payment_gateway.entity.model.PaymentTransaction;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Predicate;

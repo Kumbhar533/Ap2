@@ -3,11 +3,11 @@
 spring:
   application:
     name: ap2-poc
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    validate-on-migrate: true
+#  flyway:
+#    enabled: true
+#    locations: classpath:db/migration
+#    baseline-on-migrate: true
+#    validate-on-migrate: true
 
 
 #  ai:
@@ -26,10 +26,24 @@ spring:
       chat:
         options:
           model: llama3.2
-          max-tokens: 1024
+          max-tokens: 300
           temperature: 0.0
           stream: true
+          timeout: 10s
 
+    vectorstore:
+      qdrant:
+        host: localhost
+        port: 6334
+        use-ssl: false
+        collection-name: invoice-embeddings
+        timeout: 30000
+        max-idle-connections: 10
+        initialize-schema: true
+        local:
+          enabled: true
+          data-path: "C:/qdrant/data"
+          log-level: INFO
   datasource:
     url: jdbc:mysql://localhost:3306/ap2
     username: root
@@ -38,7 +52,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -50,9 +64,15 @@ spring:
 ghostscript:
   path: "C:/Program Files/gs/gs10.06.0/bin/gswin64c.exe"
 
-razorpay:
-  key_id: rzp_test_RTXVaX74EfLGjW
-  key_secret: DmH0aOFOx0ZjMlrK18IaddT6
+
+
+
+#  {  creating customer
+#    "firstname": "Nilesh",
+#    "email": "nileshk@veefin.com"
+#  }
+
+
 
 
 

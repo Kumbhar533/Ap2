@@ -1,7 +1,7 @@
-package com.veefin.razorpay.controller;
+package com.veefin.payment_gateway.controller;
 
 import com.veefin.invoice.dto.PaymentTransactionListResponseDTO;
-import com.veefin.razorpay.service.PaymentTransactionService;
+import com.veefin.payment_gateway.service.PaymentTransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;

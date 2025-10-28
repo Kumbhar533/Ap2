@@ -1,8 +1,9 @@
-package com.veefin.razorpay.service;
+package com.veefin.payment_gateway.service;
 
 import com.veefin.invoice.entity.InvoiceData;
 import com.veefin.invoice.service.InvoiceDataService;
-import com.veefin.razorpay.entity.PaymentTransaction;
+import com.veefin.payment_gateway.entity.model.PaymentTransaction;
+import com.veefin.payment_gateway.enums.PaymentEnums;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -86,19 +87,8 @@ public class PaymentReceiptPdfService {
 
                 // Transaction ID
                 yPosition = addLabelValuePair(contentStream, margin, yPosition, 
-                    "Transaction ID:", transaction.getUuid());
+                    "Transaction ID:", transaction.getTransactionId());
 
-                // Razorpay Order ID
-                if (transaction.getRazorpayOrderId() != null) {
-                    yPosition = addLabelValuePair(contentStream, margin, yPosition, 
-                        "Order ID:", transaction.getRazorpayOrderId());
-                }
-
-                // Razorpay Payment ID
-                if (transaction.getRazorpayPaymentId() != null) {
-                    yPosition = addLabelValuePair(contentStream, margin, yPosition, 
-                        "Payment ID:", transaction.getRazorpayPaymentId());
-                }
 
                 // Payment Method
                 yPosition = addLabelValuePair(contentStream, margin, yPosition, 
@@ -171,7 +161,7 @@ public class PaymentReceiptPdfService {
                 yPosition -= 25;
 
                 // Success message or note
-                if ("SUCCESS".equalsIgnoreCase(transaction.getStatus())) {
+                if (PaymentEnums.PENDING.name().equalsIgnoreCase(transaction.getStatus())|| PaymentEnums.SUCCESS.name().equalsIgnoreCase(transaction.getStatus())) {
                     contentStream.setFont(fontBold, 12);
                     contentStream.beginText();
                     contentStream.newLineAtOffset(margin, yPosition);

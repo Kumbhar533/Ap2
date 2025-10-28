@@ -25,6 +25,7 @@ public class OcrService {
 
     private final InvoiceRepository invoiceRepository;
     private final InvoiceParserService invoiceParserService;
+    private final InvoiceVectorService invoiceVectorService;
 
     @Value("${tesseract.datapath:C:/Program Files/Tesseract-OCR/tessdata}")
     private String tesseractPath;
@@ -53,9 +54,9 @@ public class OcrService {
                 .build();
 
 
-          invoiceRepository.save(invoiceData);
-
-
+        InvoiceData save = invoiceRepository.save(invoiceData);
+        // store in Vector DB
+        invoiceVectorService.storeInvoiceInVectorDB(save);
     }
 
     private String extractText(File file) {

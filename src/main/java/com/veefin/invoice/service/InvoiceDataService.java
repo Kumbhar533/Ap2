@@ -8,26 +8,36 @@ import com.veefin.invoice.entity.InvoiceData;
 import com.veefin.invoice.repository.InvoiceRepository;
 import com.veefin.invoice.repository.InvoiceSpecification;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.document.Document;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class InvoiceDataService {
 
     private final InvoiceRepository invoiceRepository;
+    private final InvoiceVectorService invoiceVectorService;
+    private final ChatClient chatClient;
 
     public InvoiceData getInvoiceById(String uuid) {
         return invoiceRepository.findByUuid(uuid);
     }
+
+
 
     public String getAllInvoicesResponse() {
         List<InvoiceData> invoices = invoiceRepository.findAll();
@@ -137,6 +147,88 @@ public class InvoiceDataService {
                 .type("invoice")
                 .build();
     }
+
+
+    public List<InvoiceData> getAllInvoiceByMerchantName(String merchantName){
+        return invoiceRepository.findByMerchantNameContainingIgnoreCase(merchantName);
+    }
+
+    public String handleInvoiceQuery(String userPrompt) {
+        try {
+            // RAG: Always search vector DB first for relevant context
+            List<Document> relevantInvoices = invoiceVectorService.searchSimilarInvoices(userPrompt+", Only return INVOICE documentType data ");
+
+            if (relevantInvoices.isEmpty()) {
+                return "No invoices found matching your query.";
+            }
+
+            // RAG: Build rich context from retrieved documents
+            StringBuilder context = new StringBuilder();
+            for (Document doc : relevantInvoices.subList(0, Math.min(5, relevantInvoices.size()))) {
+                Object invoiceNumber = doc.getMetadata().get("invoiceNumber");
+                Object amount = doc.getMetadata().get("totalAmount");
+                Object dueDate = doc.getMetadata().get("dueDate");
+                Object status = doc.getMetadata().get("status");
+                //Object updatedAt = doc.getMetadata().get("updatedAt");
+
+                // Skip invalid or incomplete invoices
+                if (invoiceNumber == null || amount == null) {
+                    continue;
+                }
+
+                context.append("Invoice: ").append(invoiceNumber)
+                        .append(", amount: ₹").append(amount)
+                        .append(", Due Date: ").append(dueDate)
+                        .append(", Status: ").append(status)
+                       // .append(", Updated: ").append(updatedAt)
+                        .append("\n");
+            }
+
+//            String ragPrompt = String.format("""
+//You are an invoice assistant. Use the data below to answer the user's query naturally.
+//
+//User Query: %s
+//Invoice Data: %s
+//Respond helpfully:
+//""", userPrompt, context.toString());
+
+            String ragPrompt = String.format("""
+                     You are an invoice assistant. Answer the user based ONLY on the invoice data provided.
+                     User Query: %s
+                     Invoice Data: %s
+                     """,
+                    userPrompt, context.toString());
+
+           log.info("RAG prompt: {}", ragPrompt);
+            long startTime = System.currentTimeMillis();
+
+//            String response = chatClient.prompt()
+//                    .user(ragPrompt)
+//                    .call()
+//                    .content();
+
+
+            String streamedContent = String.join("", Objects.requireNonNull(chatClient.prompt()
+                    .user(ragPrompt)
+                    .stream()
+                    .content()
+                    .collectList()
+                    .block()));
+
+            System.err.println("RAG response: " + streamedContent);
+
+// Calculate and log time taken
+            long endTime = System.currentTimeMillis();
+            double timeTakenSeconds = (endTime - startTime) / 1000.0;
+            log.info("ChatClient response time: {} seconds", timeTakenSeconds);
+
+            return streamedContent;
+
+        } catch (Exception e) {
+            return "Failed to process invoice query: " + e.getMessage();
+        }
+    }
+
 
 }
 

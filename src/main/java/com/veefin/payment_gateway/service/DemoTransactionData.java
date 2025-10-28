@@ -1,4 +1,4 @@
-package com.veefin.razorpay.service;
+package com.veefin.payment_gateway.service;
 
 import com.veefin.invoice.dto.PaymentTransactionResponseDTO;
 import org.springframework.stereotype.Service;

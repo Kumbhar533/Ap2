@@ -1,157 +1,157 @@
-
-CREATE TABLE IF NOT EXISTS file_metadata (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    uuid VARCHAR(50) NOT NULL UNIQUE,
-    file_name VARCHAR(255),
-    file_path VARCHAR(500),
-    file_size BIGINT,
-    content_type VARCHAR(100),
-    status VARCHAR(50),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_uuid (uuid),
-    INDEX idx_status (status),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- 2. INVOICE DATA TABLE
--- =====================================================
--- Main table for storing invoice information extracted from PDFs
-CREATE TABLE IF NOT EXISTS invoice_data (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    uuid VARCHAR(50) NOT NULL UNIQUE,
-    file_name VARCHAR(255),
-    merchant_name VARCHAR(255),
-    invoice_number VARCHAR(100),
-    total_amount DOUBLE,
-    due_date VARCHAR(50),
-    status VARCHAR(50),
-    raw_text TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_uuid (uuid),
-    INDEX idx_invoice_number (invoice_number),
-    INDEX idx_merchant_name (merchant_name),
-    INDEX idx_status (status),
-    INDEX idx_created_at (created_at),
-    INDEX idx_total_amount (total_amount)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- 3. INVOICE FIELD MAP TABLE
--- =====================================================
--- Stores key-value pairs of extracted invoice fields
-CREATE TABLE IF NOT EXISTS invoice_field_map (
-    invoice_id BIGINT NOT NULL,
-    field_name VARCHAR(255) NOT NULL,
-    field_value VARCHAR(1000),
-    PRIMARY KEY (invoice_id, field_name),
-    CONSTRAINT fk_invoice_field_map 
-        FOREIGN KEY (invoice_id) 
-        REFERENCES invoice_data(id) 
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- 4. PAYMENT TRANSACTIONS TABLE
--- =====================================================
--- Stores Razorpay payment transaction details
-CREATE TABLE IF NOT EXISTS payment_transactions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    uuid VARCHAR(50) NOT NULL UNIQUE,
-    invoice_uuid VARCHAR(50),
-    razorpay_order_id VARCHAR(100),
-    razorpay_payment_id VARCHAR(100),
-    amount DOUBLE,
-    currency VARCHAR(10),
-    payment_method VARCHAR(50),
-    status VARCHAR(50),
-    razorpay_response TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_uuid (uuid),
-    INDEX idx_invoice_uuid (invoice_uuid),
-    INDEX idx_razorpay_payment_id (razorpay_payment_id),
-    INDEX idx_razorpay_order_id (razorpay_order_id),
-    INDEX idx_status (status),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- 5. INTENT MANDATE TABLE
--- =====================================================
--- Stores AP2 protocol intent mandates
-CREATE TABLE IF NOT EXISTS intent_mandate (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    uuid VARCHAR(50) NOT NULL UNIQUE,
-    invoice_id VARCHAR(100),
-    merchant_name VARCHAR(255),
-    total_amount DOUBLE,
-    currency VARCHAR(10),
-    natural_language_description TEXT,
-    intent_expiry VARCHAR(50),
-    requires_refundability BOOLEAN DEFAULT FALSE,
-    user_authorization TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_uuid (uuid),
-    INDEX idx_invoice_id (invoice_id),
-    INDEX idx_merchant_name (merchant_name),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- 6. PAYMENT MANDATE TABLE
--- =====================================================
--- Stores AP2 protocol payment mandates
-CREATE TABLE IF NOT EXISTS payment_mandate (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    uuid VARCHAR(50) NOT NULL UNIQUE,
-    payment_mandate_id VARCHAR(100),
-    merchant_name VARCHAR(255),
-    amount DOUBLE,
-    currency VARCHAR(10),
-    timestamp VARCHAR(50),
-    user_authorization TEXT,
-    ai_validation TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_uuid (uuid),
-    INDEX idx_payment_mandate_id (payment_mandate_id),
-    INDEX idx_merchant_name (merchant_name),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- 7. CART MANDATE TABLE
--- =====================================================
--- Stores shopping cart payment mandates
-CREATE TABLE IF NOT EXISTS cart_mandate (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    uuid VARCHAR(50) NOT NULL UNIQUE,
-    invoice_uuid VARCHAR(50),
-    invoice_number VARCHAR(100),
-    from_merchant VARCHAR(255),
-    to_account VARCHAR(255),
-    amount DOUBLE,
-    currency VARCHAR(10),
-    payment_method VARCHAR(50),
-    upi_id VARCHAR(100),
-    due_date VARCHAR(50),
-    status VARCHAR(50),
-    user_session VARCHAR(100),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_uuid (uuid),
-    INDEX idx_invoice_uuid (invoice_uuid),
-    INDEX idx_invoice_number (invoice_number),
-    INDEX idx_status (status),
-    INDEX idx_user_session (user_session),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- =====================================================
--- END OF MIGRATION SCRIPT
--- =====================================================
-
+--
+--CREATE TABLE IF NOT EXISTS file_metadata (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    uuid VARCHAR(50) NOT NULL UNIQUE,
+--    file_name VARCHAR(255),
+--    file_path VARCHAR(500),
+--    file_size BIGINT,
+--    content_type VARCHAR(100),
+--    status VARCHAR(50),
+--    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--    INDEX idx_uuid (uuid),
+--    INDEX idx_status (status),
+--    INDEX idx_created_at (created_at)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+---- =====================================================
+---- 2. INVOICE DATA TABLE
+---- =====================================================
+---- Main table for storing invoice information extracted from PDFs
+--CREATE TABLE IF NOT EXISTS invoice_data (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    uuid VARCHAR(50) NOT NULL UNIQUE,
+--    file_name VARCHAR(255),
+--    merchant_name VARCHAR(255),
+--    invoice_number VARCHAR(100),
+--    total_amount DOUBLE,
+--    due_date VARCHAR(50),
+--    status VARCHAR(50),
+--    raw_text TEXT,
+--    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--    INDEX idx_uuid (uuid),
+--    INDEX idx_invoice_number (invoice_number),
+--    INDEX idx_merchant_name (merchant_name),
+--    INDEX idx_status (status),
+--    INDEX idx_created_at (created_at),
+--    INDEX idx_total_amount (total_amount)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+---- =====================================================
+---- 3. INVOICE FIELD MAP TABLE
+---- =====================================================
+---- Stores key-value pairs of extracted invoice fields
+--CREATE TABLE IF NOT EXISTS invoice_field_map (
+--    invoice_id BIGINT NOT NULL,
+--    field_name VARCHAR(255) NOT NULL,
+--    field_value VARCHAR(1000),
+--    PRIMARY KEY (invoice_id, field_name),
+--    CONSTRAINT fk_invoice_field_map
+--        FOREIGN KEY (invoice_id)
+--        REFERENCES invoice_data(id)
+--        ON DELETE CASCADE
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+---- =====================================================
+---- 4. PAYMENT TRANSACTIONS TABLE
+---- =====================================================
+---- Stores Razorpay payment transaction details
+--CREATE TABLE IF NOT EXISTS payment_transactions (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    uuid VARCHAR(50) NOT NULL UNIQUE,
+--    invoice_uuid VARCHAR(50),
+--    razorpay_order_id VARCHAR(100),
+--    razorpay_payment_id VARCHAR(100),
+--    amount DOUBLE,
+--    currency VARCHAR(10),
+--    payment_method VARCHAR(50),
+--    status VARCHAR(50),
+--    razorpay_response TEXT,
+--    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--    INDEX idx_uuid (uuid),
+--    INDEX idx_invoice_uuid (invoice_uuid),
+--    INDEX idx_razorpay_payment_id (razorpay_payment_id),
+--    INDEX idx_razorpay_order_id (razorpay_order_id),
+--    INDEX idx_status (status),
+--    INDEX idx_created_at (created_at)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+---- =====================================================
+---- 5. INTENT MANDATE TABLE
+---- =====================================================
+---- Stores AP2 protocol intent mandates
+--CREATE TABLE IF NOT EXISTS intent_mandate (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    uuid VARCHAR(50) NOT NULL UNIQUE,
+--    invoice_id VARCHAR(100),
+--    merchant_name VARCHAR(255),
+--    total_amount DOUBLE,
+--    currency VARCHAR(10),
+--    natural_language_description TEXT,
+--    intent_expiry VARCHAR(50),
+--    requires_refundability BOOLEAN DEFAULT FALSE,
+--    user_authorization TEXT,
+--    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--    INDEX idx_uuid (uuid),
+--    INDEX idx_invoice_id (invoice_id),
+--    INDEX idx_merchant_name (merchant_name),
+--    INDEX idx_created_at (created_at)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+---- =====================================================
+---- 6. PAYMENT MANDATE TABLE
+---- =====================================================
+---- Stores AP2 protocol payment mandates
+--CREATE TABLE IF NOT EXISTS payment_mandate (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    uuid VARCHAR(50) NOT NULL UNIQUE,
+--    payment_mandate_id VARCHAR(100),
+--    merchant_name VARCHAR(255),
+--    amount DOUBLE,
+--    currency VARCHAR(10),
+--    timestamp VARCHAR(50),
+--    user_authorization TEXT,
+--    ai_validation TEXT,
+--    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--    INDEX idx_uuid (uuid),
+--    INDEX idx_payment_mandate_id (payment_mandate_id),
+--    INDEX idx_merchant_name (merchant_name),
+--    INDEX idx_created_at (created_at)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+---- =====================================================
+---- 7. CART MANDATE TABLE
+---- =====================================================
+---- Stores shopping cart payment mandates
+--CREATE TABLE IF NOT EXISTS cart_mandate (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    uuid VARCHAR(50) NOT NULL UNIQUE,
+--    invoice_uuid VARCHAR(50),
+--    invoice_number VARCHAR(100),
+--    from_merchant VARCHAR(255),
+--    to_account VARCHAR(255),
+--    amount DOUBLE,
+--    currency VARCHAR(10),
+--    payment_method VARCHAR(50),
+--    upi_id VARCHAR(100),
+--    due_date VARCHAR(50),
+--    status VARCHAR(50),
+--    user_session VARCHAR(100),
+--    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--    INDEX idx_uuid (uuid),
+--    INDEX idx_invoice_uuid (invoice_uuid),
+--    INDEX idx_invoice_number (invoice_number),
+--    INDEX idx_status (status),
+--    INDEX idx_user_session (user_session),
+--    INDEX idx_created_at (created_at)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+--
+---- =====================================================
+---- END OF MIGRATION SCRIPT
+---- =====================================================
+--
