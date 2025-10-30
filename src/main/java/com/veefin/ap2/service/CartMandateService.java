@@ -5,6 +5,8 @@ import com.veefin.ap2.entity.CartMandate;
 import com.veefin.ap2.entity.IntentMandateEntity;
 import com.veefin.ap2.repository.CartMandateRepository;
 import com.veefin.ap2.repository.IntentMandateRepository;
+import com.veefin.chatModel.service.PaymentProgressService;
+import com.veefin.common.exception.ResourceNotFoundException;
 import com.veefin.invoice.entity.InvoiceData;
 import com.veefin.invoice.service.InvoiceDataService;
 import lombok.Getter;
@@ -27,6 +29,7 @@ public class CartMandateService {
     private final InvoiceDataService invoiceService;
     private final CryptographicService cryptoService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PaymentProgressService paymentProgressService;
 
 
     private final AuditLogService auditService; // 🔧 ADD THIS
@@ -35,10 +38,12 @@ public class CartMandateService {
      * Backend creates Cart Mandate based on verified Intent
      * Backend signs this (NOT user)
      */
-    public CartMandate createCartFromIntent(String intentHash) {
+    public CartMandate createCartFromIntent(String intentHash, String sessionId) {
         IntentMandateEntity intent = null;
         String cartId = "PENDING";
-
+        if (sessionId != null) {
+            paymentProgressService.logStep(sessionId, "CART_START", "🔄 Starting Cart Mandate creation...", true);
+        }
         try {
             // Find verified intent
             intent = intentRepo.findByIntentHash(intentHash);
@@ -46,7 +51,7 @@ public class CartMandateService {
                 // 🔍 AUDIT: Intent not found
                 auditService.logCartEvent("CREATE", cartId, null, "backend-agent", false,
                         "Intent not found for hash: " + intentHash, null, null);
-                throw new RuntimeException("Intent not found");
+                throw new ResourceNotFoundException("Intent not found");
             }
 
             //  AUDIT: Cart creation started
@@ -96,7 +101,9 @@ public class CartMandateService {
             cart.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
 
             CartMandate savedCart = cartRepo.save(cart);
-
+            if (sessionId != null) {
+                paymentProgressService.logStep(sessionId, "CART_CREATED", "✅ Cart Mandate created successfully", true);
+            }
             //  AUDIT: Cart creation successful
             auditService.logCartEvent("CREATE", cartId, intent.getInvoiceUuid(), "backend-agent", true,
                     "Cart mandate created and signed successfully", cartJson.getTotal(), intent.getMerchantName());

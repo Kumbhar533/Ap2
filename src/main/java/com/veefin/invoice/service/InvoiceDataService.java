@@ -192,14 +192,27 @@ public class InvoiceDataService {
 //Respond helpfully:
 //""", userPrompt, context.toString());
 
+//            String ragPrompt = String.format("""
+//                     You are an invoice assistant. Answer the user based ONLY on the invoice data provided.
+//                     User Query: %s
+//                     Invoice Data: %s
+//                     """,
+//                    userPrompt, context.toString());
             String ragPrompt = String.format("""
-                     You are an invoice assistant. Answer the user based ONLY on the invoice data provided.
-                     User Query: %s
-                     Invoice Data: %s
-                     """,
-                    userPrompt, context.toString());
+User message (any language): %s
 
-           log.info("RAG prompt: {}", ragPrompt);
+Understand the message and reply ONLY using the data below.
+If it’s about invoices, show them clearly like:
+
+🧾 Invoice: [Invoice ID]
+   • Amount: ₹[amount]
+   • Due Date: [date]
+   • Status: [status]
+Data:
+%s
+""", userPrompt, context.toString());
+
+            log.info("RAG prompt: {}", ragPrompt);
             long startTime = System.currentTimeMillis();
 
 //            String response = chatClient.prompt()

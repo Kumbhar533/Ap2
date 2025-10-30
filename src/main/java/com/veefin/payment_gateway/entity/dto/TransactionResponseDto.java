@@ -12,7 +12,9 @@ public class TransactionResponseDto {
     private String transactionId;
     private String currencyCode;
     private Double amount;
+    private String last4;
     private String paymentMethod;
     private String customerId;
     private String orderId;
+    private String status;
 }

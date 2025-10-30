@@ -31,6 +31,9 @@ public class IntentMandateEntity {
     @Column(name = "merchant_name")
     private String merchantName;
 
+    @Column(name = "status")
+    private String status;
+
     @Column(name = "total_amount")
     private Double amount;
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.veefin.ap2.dto.IntentMandate;
 import com.veefin.ap2.entity.IntentMandateEntity;
 import com.veefin.ap2.repository.IntentMandateRepository;
+import com.veefin.chatModel.service.PaymentProgressService;
 import com.veefin.common.exception.ResourceNotFoundException;
 import com.veefin.common.exception.ValidationException;
 import com.veefin.invoice.entity.InvoiceData;
@@ -22,8 +23,13 @@ public class IntentMandateService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CryptographicService cryptoService;
     private final AuditLogService auditService;
+    private final PaymentProgressService paymentProgressService; // Add this
 
-    public void createIntentForInvoice(String uuid, String userSignedIntentJSON, String intentHash, String userSignature) {
+    public void createIntentForInvoice(String uuid, String userSignedIntentJSON, String intentHash, String userSignature, String sessionId) {
+
+        if (sessionId != null) {
+            paymentProgressService.logStep(sessionId, "INTENT_START", "🔄 Starting Intent Mandate creation...", true);
+        }
         InvoiceData invoice = invoiceDataService.getInvoiceById(uuid);
         if (invoice == null) {
             auditService.logIntentEvent("CREATE", intentHash, uuid, "SYSTEM", false,
@@ -80,10 +86,14 @@ public class IntentMandateService {
             entity.setNaturalLanguageDescription(mandate.getNaturalLanguageDescription());
             entity.setIntentExpiry(mandate.getIntentExpiry());
             entity.setRequiresRefundability(false);
+            entity.setStatus("CREATED");
             entity.setUserAuthorization(userSignature);
             entity.setIntentHash(intentHash);
             intentRepo.save(entity);
 
+            if (sessionId != null) {
+                paymentProgressService.logStep(sessionId, "INTENT_CREATED", "✅ Intent Mandate created successfully", true);
+            }
             // 🔍 AUDIT: Intent creation successful
             auditService.logIntentEvent("CREATE", intentHash, uuid, "demo-user", true,
                     "Intent mandate stored successfully", invoice.getTotalAmount(), invoice.getMerchantName());

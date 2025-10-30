@@ -5,6 +5,7 @@ import com.veefin.ap2.entity.AP2AuditLog;
 import com.veefin.ap2.entity.CartMandate;
 import com.veefin.ap2.entity.IntentMandateEntity;
 import com.veefin.ap2.repository.IntentMandateRepository;
+import com.veefin.chatModel.service.PaymentProgressService;
 import com.veefin.payment_gateway.entity.dto.TransactionResponseDto;
 import com.veefin.payment_gateway.service.BrainTreeService;
 import jakarta.transaction.Transactional;
@@ -21,10 +22,11 @@ public class AP2Flow {
     private final PaymentMandateService paymentMandateService;
     private final BrainTreeService brainTreeService;
     private final AuditLogService auditService;
+    private final PaymentProgressService paymentProgressService;
 
 
     @Transactional
-    public void executePaymentFlow(String invoiceUuid, CartMandate cart) {
+    public void executePaymentFlow(String invoiceUuid, CartMandate cart, String paymentToken, String sessionId) {
         log.info("Starting payment flow for invoice: {} and cart: {}", invoiceUuid, cart.getCartId());
 
         //  Fetch intent from DB
@@ -35,16 +37,27 @@ public class AP2Flow {
         }
 
         //  Create PaymentMandate (represents internal transaction record)
+        if (sessionId != null) {
+            paymentProgressService.logStep(sessionId, "PAYMENT_START", "🔄 Starting payment processing...", true);
+        }
         PaymentMandate paymentMandate = paymentMandateService.createPaymentMandateFromCart(cart, intent);
+        if (sessionId != null) {
+            paymentProgressService.logStep(sessionId, "PAYMENT_MANDATE_CREATED", "✅ Payment Mandate created successfully", true);
+        }
 
         try {
             //  Trigger gateway payment creation
             log.info("Creating transaction in Braintree for amount: {}",
                     paymentMandate.getPaymentMandateContents().getTotalAmount());
 
+
             TransactionResponseDto txnResponse = brainTreeService.createTransaction(
-                    paymentMandate.getPaymentMandateContents().getTotalAmount()
+                    paymentMandate.getPaymentMandateContents().getTotalAmount(),
+                    paymentToken
             );
+            if (sessionId != null) {
+                paymentProgressService.logStep(sessionId, "PAYMENT_TRANSACTION_CREATED", "✅ Transaction created successfully", true);
+            }
 
             if (txnResponse.getTransactionId() != null) {
                 // 5️ Handle post-payment success logic

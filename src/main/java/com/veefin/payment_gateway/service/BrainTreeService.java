@@ -35,9 +35,6 @@ import java.util.UUID;
 @Slf4j
 public class BrainTreeService {
 
-    @Value("${braintree.token}")
-    private String token;
-
     private final BraintreeGateway gateway;
     private final PaymentMandateService paymentMandateService;
     private final InvoiceRepository invoiceRepository;
@@ -50,7 +47,7 @@ public class BrainTreeService {
 
 
 
-    public TransactionResponseDto createTransaction(Double amount) {
+    public TransactionResponseDto createTransaction(Double amount, String token) {
         try {
             TransactionRequest request = new TransactionRequest()
                     .amount(BigDecimal.valueOf(amount))
@@ -64,6 +61,7 @@ public class BrainTreeService {
 
             if (result.isSuccess()) {
                 TransactionResponseDto transactionResponseDto = processPayment(result);
+                //token,status
                 log.info("Transaction created successfully. ID: {}", transactionResponseDto.getTransactionId());
                 return transactionResponseDto;
             }else {
@@ -81,7 +79,7 @@ public class BrainTreeService {
 
     public void processPaymentSuccess(String paymentMandateId, String invoiceUuid,TransactionResponseDto transactionResponseDto) throws Exception {
 
-        Optional<Card> card = cardRepository.findByProviderCustomerId(transactionResponseDto.getCustomerId());
+        Optional<Card> card = cardRepository.findByProviderCustomerIdAndCardLast4(transactionResponseDto.getCustomerId(), transactionResponseDto.getLast4());
         if (card.isEmpty()) {
             throw new SecurityException("Card not found for token: " + transactionResponseDto.getCustomerId());
         }
@@ -109,12 +107,12 @@ public class BrainTreeService {
                 .transactionId(transactionResponseDto.getTransactionId())
                 .amount(transactionResponseDto.getAmount()) // Convert from paise to rupees
                 .currency(transactionResponseDto.getCurrencyCode())
-                .paymentMethod(PaymentEnums.PaymentMethod.CARD.name())
+                .paymentMethod(transactionResponseDto.getPaymentMethod())
                 .fromAccount(card.get().getCardLast4())
                 .toAccount("merchant@payment-gateway")
                 .fromAccountType("CARD")
                 .toAccountType("MERCHANT_ACCOUNT")
-                .status(PaymentEnums.PENDING.name())
+                .status(transactionResponseDto.getStatus())
                 .build();
 
         PaymentTransaction savedTransaction = paymentRepository.save(transaction);
@@ -169,6 +167,8 @@ public class BrainTreeService {
                 .paymentMethod(transaction.getPaymentInstrumentType())
                 .customerId(transaction.getCustomer().getId())
                 .orderId(transaction.getOrderId())
+                .status(transaction.getStatus().name())
+                .last4(transaction.getCreditCard().getLast4())
                 .build();
 
     }

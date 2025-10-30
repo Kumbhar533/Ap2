@@ -33,7 +33,7 @@ public class BrainTreeController {
             log.info("Webhook received: {}", notification.getKind());
 
             if (notification.getTransaction() != null) {
-                paymentTransactionService.updatePaymentTransaction(notification.getTransaction().getId());
+                paymentTransactionService.updatePaymentTransaction(notification);
             }
             return ResponseEntity.ok("Webhook received");
             } catch (Exception e) {

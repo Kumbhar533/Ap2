@@ -1,5 +1,7 @@
 package com.veefin.payment_gateway.service;
 
+import com.braintreegateway.Transaction;
+import com.braintreegateway.WebhookNotification;
 import com.veefin.common.exception.ResourceNotFoundException;
 import com.veefin.invoice.dto.ApiListResponse;
 import com.veefin.invoice.dto.PaginationDTO;
@@ -171,30 +173,28 @@ public class PaymentTransactionService {
             if (relevantPayments.isEmpty()) {
                 return "No payment transactions found matching your query.";
             }
-
-            boolean hasInvalidData = relevantPayments.stream()
-                    .anyMatch(doc -> {
-                        Object invoiceUuid = doc.getMetadata().get("invoiceUuid");
-                        return invoiceUuid == null || invoiceUuid.toString().trim().isEmpty() ||
-                                invoiceUuid.toString().equals("null");
-                    });
+            List<Document> paymentDocs = relevantPayments.stream()
+                    .filter(doc -> {
+                        if (doc == null) return false;
+                        Object type = doc.getMetadata().get("documentType");
+                        return type != null && "PAYMENT".equalsIgnoreCase(type.toString().trim());
+                    })
+                    .toList();
 
             StringBuilder context = new StringBuilder();
-            if (hasInvalidData) {
-                userPrompt = "just say no transactions found in few words";
-            }else {
+
 
                 // Build minimal context (only essential fields)
 
-                for (Document doc : relevantPayments.subList(0, Math.min(5, relevantPayments.size()))) {
-                    context.append("Payment ID: ").append(doc.getMetadata().get("paymentId"))
-                            .append(", Invoice UUID: ").append(doc.getMetadata().get("invoiceUuid"))
+                for (Document doc : paymentDocs.subList(0, Math.min(5, paymentDocs.size()))) {
+                    context
+                            .append(", Account: ").append(doc.getMetadata().get("toAccount"))
                             .append(", Amount: ₹").append(doc.getMetadata().get("amount"))
                             .append(", Status: ").append(doc.getMetadata().get("status"))
                             .append(", Date: ").append(doc.getMetadata().get("createdAt"))
                             .append("\n");
                 }
-            }
+
 
             // Shortened prompt, still provides same info for LLM
             String ragPrompt = String.format("""
@@ -202,14 +202,21 @@ public class PaymentTransactionService {
 
             User Query: %s
             Payment Data: %s
-            Respond helpfully:
         """, userPrompt, context.toString());
 
+                long startTime = System.currentTimeMillis();
+            System.out.println("RAG response: " + ragPrompt);
             // Call LLM
-            return chatClient.prompt()
+            String content = chatClient.prompt()
                     .user(ragPrompt)
                     .call()
                     .content();
+
+            long endTime = System.currentTimeMillis();
+            double timeTakenSeconds = (endTime - startTime) / 1000.0;
+            System.out.println("ChatClient response time: " + timeTakenSeconds + " seconds");
+            return content;
+
 
         } catch (Exception e) {
             return "Failed to process payment query: " + e.getMessage();
@@ -217,10 +224,16 @@ public class PaymentTransactionService {
     }
 
 
-    public void updatePaymentTransaction(String transactionId) {
+    public void updatePaymentTransaction(WebhookNotification webhookNotification) {
+        Transaction transaction = webhookNotification.getTransaction();
+        if(transaction == null){
+            return;
+        }
+        String transactionId = transaction.getId();
         PaymentTransaction paymentTransaction = paymentRepository.findByTransactionId(transactionId);
-        paymentTransaction.setStatus(PaymentEnums.SUCCESS.name());
+        paymentTransaction.setStatus(transaction.getStatus().name());
         paymentRepository.save(paymentTransaction);
+        transactionVectorStore.storePaymentInVectorDB(paymentTransaction);
     }
 
 

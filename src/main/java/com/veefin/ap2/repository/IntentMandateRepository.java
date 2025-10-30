@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface IntentMandateRepository extends JpaRepository<IntentMandateEntity, Long> {
 
     IntentMandateEntity findByIntentHash(String intentHash);
-    IntentMandateEntity findByInvoiceUuid(String invoiceUuid);
+    IntentMandateEntity findByInvoiceUuidAndStatus(String invoiceUuid, String status);
 }

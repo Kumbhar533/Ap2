@@ -28,7 +28,7 @@
 
         /* Header Styles */
         .header {
-            background: #00928b;
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
             padding: 20px 30px;
             display: flex;
             align-items: center;
@@ -44,23 +44,17 @@
             gap: 15px;
         }
 
-          .bot-avatar {
-            width: 140px;
+        .bot-avatar {
+            width: 50px;
             height: 50px;
-            background: transparent;
-            border-radius: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            padding: 0;
-            box-shadow: none;
-        }
-
-        .bot-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .header-info h1 {
@@ -201,13 +195,6 @@
 
         .message-wrapper.bot .message-avatar {
             background: #374151;
-            overflow: hidden;
-        }
-
-        .message-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
         }
 
         .message-content {
@@ -389,7 +376,7 @@
             display: none;
         }
 
-        .attach-btn, .voice-btn, .upload-btn {
+        .attach-btn {
             padding: 10px;
             background: transparent;
             border: none;
@@ -405,25 +392,14 @@
             margin-left: 8px;
         }
 
-        .attach-btn:hover, .voice-btn:hover, .upload-btn:hover {
+        .attach-btn:hover {
             background: #374151;
             color: #10b981;
             transform: none;
             box-shadow: none;
         }
 
-        .voice-btn.recording {
-            background: #ef4444;
-            color: white;
-            animation: pulse 1s infinite;
-        }
-
-        .upload-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .attach-btn svg, .voice-btn svg, .upload-btn svg {
+        .attach-btn svg {
             width: 20px;
             height: 20px;
         }
@@ -745,9 +721,7 @@
     <!-- Header -->
     <div class="header">
         <div class="header-left">
-            <div class="bot-avatar">
-                <img src="/images/veefin-logo-text.png" alt="VEEFIN" class="h-10 w-auto object-contain brightness-0 invert" style="filter:brightness(0) invert(1);-webkit-filter:brightness(0) invert(1);">
-            </div>
+            <div class="bot-avatar">🤖</div>
             <div class="header-info">
                 <h1>AI Payment Assistant</h1>
                 <p>Your intelligent payment companion</p>
@@ -776,7 +750,7 @@
                 <div class="quick-action" onclick="document.getElementById('input').value='show all invoices'; document.getElementById('send').click();">
                     📋 Show all invoices
                 </div>
-                <div class="quick-action" onclick="document.getElementById('input').value='Show me pending invoices'; document.getElementById('send').click();">
+                <div class="quick-action" onclick="document.getElementById('input').value='What payments are pending?'; document.getElementById('send').click();">
                     ⏳ Pending payments
                 </div>
                 <div class="quick-action" onclick="document.getElementById('input').value='Help me with a payment'; document.getElementById('send').click();">
@@ -796,17 +770,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                         </svg>
                     </button>
-                    <button class="upload-btn" id="uploadBtn" title="Upload selected files" style="display: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                    </button>
-                    <button class="voice-btn" id="voiceBtn" title="Voice input">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
-                    </button>
-                    <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
+                    <input type="file" id="fileInput" multiple />
                     <input type="text" id="input" placeholder="Type your message here..." autocomplete="off" />
                 </div>
                 <div id="attachedFiles" class="attached-files" style="display: none;"></div>
@@ -841,17 +805,15 @@
     class PaymentAssistant {
         constructor() {
             this.sessionId = null;
-            this.sessionExpiry = null;
-            this.sessionTimeout = 10 * 60 * 1000;
+            this.sessionExpiry = null; // Track session expiry
+            this.sessionTimeout = 10 * 60 * 1000; // 10 minutes
             this.eventSource = null;
-            this.promptEventSource = null;
+            this.promptEventSource = null; // For real-time prompt logs
             this.messages = document.getElementById('messages');
             this.input = document.getElementById('input');
             this.sendBtn = document.getElementById('send');
             this.fileInput = document.getElementById('fileInput');
             this.attachBtn = document.getElementById('attachBtn');
-            this.uploadBtn = document.getElementById('uploadBtn');
-            this.voiceBtn = document.getElementById('voiceBtn');
             this.attachedFilesContainer = document.getElementById('attachedFiles');
             this.newChatBtn = document.getElementById('newChatBtn');
             this.newChatModal = document.getElementById('newChatModal');
@@ -859,50 +821,7 @@
             this.modalConfirm = document.getElementById('modalConfirm');
             this.attachedFiles = [];
 
-            // Voice recognition
-            this.recognition = null;
-            this.isRecording = false;
-            this.initVoiceRecognition();
-
             this.init();
-        }
-
-        initVoiceRecognition() {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                this.recognition = new SpeechRecognition();
-                this.recognition.continuous = false;
-                this.recognition.interimResults = false;
-                this.recognition.lang = 'en-US';
-
-                this.recognition.onstart = () => {
-                    this.isRecording = true;
-                    this.voiceBtn.classList.add('recording');
-                    this.addChatLog('🎤 Voice', 'Listening...', 'info');
-                };
-
-               this.recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    this.input.value = transcript;
-                    this.addChatLog('🎤 Voice', `Captured: "${transcript}"`, 'success');
-
-                    // Automatically send the captured voice message
-                    setTimeout(() => {
-                        this.sendPrompt();
-                    }, 500); // Small delay to show the captured text
-                };
-
-                this.recognition.onerror = (event) => {
-                    this.addChatLog('🎤 Voice', `Error: ${event.error}`, 'error');
-                };
-
-                this.recognition.onend = () => {
-                    this.isRecording = false;
-                    this.voiceBtn.classList.remove('recording');
-                };
-            } else {
-                console.warn('Speech recognition not supported');
-            }
         }
 
         async init() {
@@ -913,13 +832,15 @@
         async createSession(force = false) {
             const now = Date.now();
 
+            // Only create new session if none exists or expired or forced
             if (!this.sessionId || force || (this.sessionExpiry && now > this.sessionExpiry)) {
                 const res = await fetch('/api/payment/create', { method: 'POST' });
                 const data = await res.json();
                 this.sessionId = data.sessionId;
-                this.sessionExpiry = now + this.sessionTimeout;
+                this.sessionExpiry = now + this.sessionTimeout; // Set new expiry time
                 this.addLog(`✅ New session created: ${this.sessionId}`, 'info');
 
+                // Restart SSE stream
                 if (this.eventSource) this.eventSource.close();
                 this.startLogStream();
             } else {
@@ -965,16 +886,6 @@
                 this.handleFileSelect(e);
             });
 
-            // Upload button listener
-            this.uploadBtn.addEventListener('click', () => {
-                this.uploadFiles();
-            });
-
-            // Voice button listener
-            this.voiceBtn.addEventListener('click', () => {
-                this.toggleVoiceRecording();
-            });
-
             // New chat button listener
             this.newChatBtn.addEventListener('click', () => {
                 this.showNewChatModal();
@@ -1005,55 +916,6 @@
             });
         }
 
-        toggleVoiceRecording() {
-            if (!this.recognition) {
-                this.addChatLog('🎤 Voice', 'Speech recognition not supported in this browser', 'error');
-                return;
-            }
-
-            if (this.isRecording) {
-                this.recognition.stop();
-            } else {
-                this.recognition.start();
-            }
-        }
-
-        async uploadFiles() {
-            if (this.attachedFiles.length === 0) return;
-
-            this.uploadBtn.disabled = true;
-            this.addChatLog('📤 Upload', 'Uploading files...', 'info');
-
-            try {
-                const uploadPromises = this.attachedFiles.map(async (file) => {
-                    const formData = new FormData();
-                    formData.append('file', file);
-
-                    const response = await fetch('/merchant/upload-invoice', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Failed to upload ${file.name}`);
-                    }
-
-                    return file.name;
-                });
-
-                const uploadedFiles = await Promise.all(uploadPromises);
-                this.addChatLog('📤 Upload', `Successfully uploaded: ${uploadedFiles.join(', ')}`, 'success');
-
-                // Clear attached files after successful upload
-                this.clearAttachedFiles();
-
-            } catch (error) {
-                this.addChatLog('📤 Upload', `Upload failed: ${error.message}`, 'error');
-            } finally {
-                this.uploadBtn.disabled = false;
-            }
-        }
-
         async sendPrompt() {
             const message = this.input.value.trim();
             const hasFiles = this.attachedFiles.length > 0;
@@ -1074,10 +936,10 @@
             const typingIndicator = this.addTypingIndicator();
 
             try {
-                // Ensure valid session before sending
+                // Ensure valid session before sending (reuse if not expired)
                 await this.createSession();
 
-                // Start fresh log stream for this prompt
+                // Start fresh log stream for this prompt with the reused sessionId
                 this.startPromptLogStream(this.sessionId);
 
                 // Prepare request with files if any
@@ -1098,7 +960,7 @@
                         body: formData
                     });
                 } else {
-                    // Send as JSON
+                    // Send as JSON (original behavior)
                     response = await fetch('/agent/prompt', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1111,7 +973,7 @@
                 // Clear attached files after sending
                 this.clearAttachedFiles();
 
-                // Wait 1 second before showing response
+                // Wait 1 second before showing response (logs will appear during this time)
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 // Remove typing indicator
@@ -1147,6 +1009,7 @@
             this.promptEventSource = new EventSource(`/api/payment/logs/${sessionId}`);
 
             this.promptEventSource.addEventListener('connected', (event) => {
+                // Silently connect - don't show connection log
                 console.log('Log stream connected:', event.data);
             });
 
@@ -1178,14 +1041,7 @@
 
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            if (type === 'user') {
-                avatar.textContent = '👤';
-            } else {
-                const img = document.createElement('img');
-                img.src = '/images/veefin-logo-text.png';
-                img.alt = 'VEEFIN Logo';
-                avatar.appendChild(img);
-            }
+            avatar.textContent = type === 'user' ? '👤' : '🤖';
 
             const content = document.createElement('div');
             content.className = 'message-content';
@@ -1263,6 +1119,7 @@
         }
 
         addLog(text, type = 'info') {
+            // Log to console instead since we removed the logs panel
             console.log(`[${type.toUpperCase()}] ${text}`);
         }
 
@@ -1285,12 +1142,10 @@
         renderAttachedFiles() {
             if (this.attachedFiles.length === 0) {
                 this.attachedFilesContainer.style.display = 'none';
-                this.uploadBtn.style.display = 'none';
                 return;
             }
 
             this.attachedFilesContainer.style.display = 'flex';
-            this.uploadBtn.style.display = 'flex';
             this.attachedFilesContainer.innerHTML = '';
 
             this.attachedFiles.forEach((file, index) => {
@@ -1356,12 +1211,12 @@
             }
 
             this.newChatModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
         }
 
         hideNewChatModal() {
             this.newChatModal.classList.remove('active');
-            document.body.style.overflow = '';
+            document.body.style.overflow = ''; // Restore scrolling
         }
 
         startNewChat() {
@@ -1402,6 +1257,7 @@
             // Create new session
             this.createSession();
 
+            // Show notification
             console.log('✨ New chat started!');
         }
     }

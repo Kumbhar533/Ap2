@@ -17,12 +17,10 @@ public class KeyGenerator {
      * 🔧 Demo RSA Private Key in PKCS#8 PEM format (for testing only)
      */
     private static final String DEMO_PRIVATE_KEY_PEM =
-            """
-                   """;
+
 
     private static final String DEMO_PUBLIC_KEY_PEM = """
        
-        """;
 
     public String simulateUserSignature(String intentJSON) {
         try {
