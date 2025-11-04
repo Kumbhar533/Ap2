@@ -1,8 +1,8 @@
-package com.veefin.chatModel.controller;
+package com.veefin.chat_model.controller;
 
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -75,5 +75,19 @@ public class PaymentProgressController {
                 "status", "created",
                 "logsUrl", "/api/payment/logs/" + sessionId
         );
+    }
+
+
+    @PreDestroy
+    public void cleanup() {
+        // Clean up all active SSE connections
+        emitters.values().forEach(emitter -> {
+            try {
+                emitter.complete();
+            } catch (Exception e) {
+                log.warn("Error closing SSE emitter", e);
+            }
+        });
+        emitters.clear();
     }
 }

@@ -1,6 +1,6 @@
-package com.veefin.chatModel.service;
+package com.veefin.chat_model.service;
 
-import com.veefin.chatModel.controller.PaymentProgressController;
+import com.veefin.chat_model.controller.PaymentProgressController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

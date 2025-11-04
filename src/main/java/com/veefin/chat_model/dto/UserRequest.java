@@ -1,4 +1,4 @@
-package com.veefin.chatModel.dto;
+package com.veefin.chat_model.dto;
 
 import lombok.Data;
 

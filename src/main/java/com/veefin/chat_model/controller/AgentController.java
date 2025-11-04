@@ -1,10 +1,8 @@
-package com.veefin.chatModel.controller;
+package com.veefin.chat_model.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.veefin.chatModel.dto.UserRequest;
-import com.veefin.chatModel.service.ConversationalPaymentService;
+import com.veefin.chat_model.dto.UserRequest;
+import com.veefin.chat_model.service.ConversationalPaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

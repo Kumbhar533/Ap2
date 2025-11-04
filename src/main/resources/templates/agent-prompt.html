@@ -134,6 +134,235 @@
             height: 18px;
         }
 
+        .history-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            margin-right: 10px;
+        }
+
+        .history-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-btn:active {
+            transform: translateY(0);
+        }
+
+        .history-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: #1f1f1f;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            background: #00928b;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-header h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .sidebar-close {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .sidebar-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: rotate(90deg);
+        }
+
+        .sidebar-close svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            background: #1a1a1a;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: #0f0f0f;
+            border-radius: 4px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: #00928b;
+            border-radius: 4px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: #00a89f;
+        }
+
+        .history-item {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .history-item:hover {
+            background: #333;
+            border-color: #00928b;
+            transform: translateX(-5px);
+            box-shadow: 0 2px 8px rgba(0, 146, 139, 0.3);
+        }
+
+        .history-item:active {
+            transform: translateX(-3px);
+        }
+
+        .history-item-label {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .history-item-id {
+            color: #888;
+            font-size: 11px;
+            font-family: monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar-empty-state,
+        .sidebar-loading-state {
+            color: #888;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
+        .sidebar-loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sidebar-loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #2a2a2a;
+            border-top-color: #00928b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: fixed;
+            bottom: 100px;
+            left: 30px;
+            padding: 12px 24px;
+            background: #00928b;
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0, 146, 139, 0.4);
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: #007a74;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 146, 139, 0.6);
+        }
+
+        .back-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
         /* Messages Area */
         .messages {
             flex: 1;
@@ -737,6 +966,32 @@
             .modal-btn {
                 width: 100%;
             }
+
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+
+            .history-btn span {
+                display: none;
+            }
+
+            .history-btn {
+                padding: 10px;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+            }
+
+            .back-btn {
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 90px;
+            }
+
+            .back-btn:hover {
+                transform: translateX(-50%) translateY(-2px);
+            }
         }
     </style>
 </head>
@@ -754,6 +1009,12 @@
             </div>
         </div>
         <div class="header-right">
+            <button class="history-btn" id="historyBtn" title="View chat history">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>History</span>
+            </button>
             <button class="new-chat-btn" id="newChatBtn" title="Start a new conversation">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -767,8 +1028,25 @@
         </div>
     </div>
 
-    <!-- Messages Area -->
-    <div id="messages" class="messages">
+    <!-- Chat History Sidebar -->
+    <div class="sidebar" id="historySidebar">
+        <div class="sidebar-header">
+            <h3>Chat History</h3>
+            <button class="sidebar-close" id="closeSidebar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="sidebar-content" id="historyList">
+            <!-- Chat history items will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-content" id="mainContent">
+        <!-- Messages Area -->
+        <div id="messages" class="messages">
         <div class="welcome-message">
             <h2>👋 Welcome!</h2>
             <p>I'm your AI Payment Assistant. How can I help you today?</p>
@@ -816,6 +1094,15 @@
             </button>
         </div>
     </div>
+
+    <!-- Back Button (hidden by default) -->
+    <button class="back-btn" id="backBtn" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Back to Current Chat</span>
+    </button>
+    </div>
 </div>
 
 <!-- New Chat Modal -->
@@ -841,8 +1128,6 @@
     class PaymentAssistant {
         constructor() {
             this.sessionId = null;
-            this.sessionExpiry = null;
-            this.sessionTimeout = 10 * 60 * 1000;
             this.eventSource = null;
             this.promptEventSource = null;
             this.messages = document.getElementById('messages');
@@ -858,6 +1143,16 @@
             this.modalCancel = document.getElementById('modalCancel');
             this.modalConfirm = document.getElementById('modalConfirm');
             this.attachedFiles = [];
+
+            // Chat history elements
+            this.historyBtn = document.getElementById('historyBtn');
+            this.historySidebar = document.getElementById('historySidebar');
+            this.closeSidebar = document.getElementById('closeSidebar');
+            this.historyList = document.getElementById('historyList');
+            this.backBtn = document.getElementById('backBtn');
+            this.mainContent = document.getElementById('mainContent');
+            this.isViewingHistory = false;
+            this.currentChatMessages = [];
 
             // Voice recognition
             this.recognition = null;
@@ -911,13 +1206,11 @@
         }
 
         async createSession(force = false) {
-            const now = Date.now();
-
-            if (!this.sessionId || force || (this.sessionExpiry && now > this.sessionExpiry)) {
+            // Only create a new session if forced (New Chat button) or no session exists
+            if (!this.sessionId || force) {
                 const res = await fetch('/api/payment/create', { method: 'POST' });
                 const data = await res.json();
                 this.sessionId = data.sessionId;
-                this.sessionExpiry = now + this.sessionTimeout;
                 this.addLog(`✅ New session created: ${this.sessionId}`, 'info');
 
                 if (this.eventSource) this.eventSource.close();
@@ -978,6 +1271,19 @@
             // New chat button listener
             this.newChatBtn.addEventListener('click', () => {
                 this.showNewChatModal();
+            });
+
+            // Chat history listeners
+            this.historyBtn.addEventListener('click', () => {
+                this.toggleSidebar();
+            });
+
+            this.closeSidebar.addEventListener('click', () => {
+                this.toggleSidebar();
+            });
+
+            this.backBtn.addEventListener('click', () => {
+                this.backToCurrentChat();
             });
 
             // Modal listeners
@@ -1074,9 +1380,6 @@
             const typingIndicator = this.addTypingIndicator();
 
             try {
-                // Ensure valid session before sending
-                await this.createSession();
-
                 // Start fresh log stream for this prompt
                 this.startPromptLogStream(this.sessionId);
 
@@ -1399,10 +1702,172 @@
                 this.promptEventSource.close();
             }
 
-            // Create new session
-            this.createSession();
+            // Create new session (force = true)
+            this.createSession(true);
 
             console.log('✨ New chat started!');
+        }
+
+        // Chat History Methods
+        async toggleSidebar() {
+            const isActive = this.historySidebar.classList.toggle('active');
+            this.mainContent.classList.toggle('sidebar-open', isActive);
+
+            if (isActive) {
+                await this.loadUserSessions();
+            }
+        }
+
+        async loadUserSessions() {
+            try {
+                // Show loading state
+                this.historyList.innerHTML = `
+                    <div class="sidebar-loading-state">
+                        <div class="sidebar-loading-spinner"></div>
+                        <div>Loading chat history...</div>
+                    </div>
+                `;
+
+                const response = await fetch('/api/chat/sessions');
+                const sessions = await response.json();
+
+                if (sessions.length === 0) {
+                    this.historyList.innerHTML = `
+                        <div class="sidebar-empty-state">
+                            <div style="font-size: 48px; margin-bottom: 10px;">💬</div>
+                            <div>No chat history found</div>
+                            <div style="font-size: 12px; margin-top: 8px; color: #666;">Start a conversation to see it here</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                this.historyList.innerHTML = '';
+                sessions.forEach(session => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-item-label">${session.label || 'Untitled Chat'}</div>
+                    `;
+                    historyItem.addEventListener('click', () => this.loadChatHistory(session.sessionId));
+                    this.historyList.appendChild(historyItem);
+                });
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+                this.historyList.innerHTML = `
+                    <div class="sidebar-empty-state" style="color: #ff6b6b;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+                        <div>Failed to load chat history</div>
+                        <div style="font-size: 12px; margin-top: 8px;">Please try again later</div>
+                    </div>
+                `;
+            }
+        }
+
+        async loadChatHistory(sessionId) {
+            try {
+                // Close sidebar first
+                this.historySidebar.classList.remove('active');
+                this.mainContent.classList.remove('sidebar-open');
+
+                // Save current chat messages before loading history
+                if (!this.isViewingHistory) {
+                    this.currentChatMessages = Array.from(this.messages.children);
+                }
+
+                this.isViewingHistory = true;
+                this.backBtn.style.display = 'flex';
+
+                // Disable input and buttons while viewing history
+                this.input.disabled = true;
+                this.sendBtn.disabled = true;
+                this.voiceBtn.disabled = true;
+                this.attachBtn.disabled = true;
+                this.uploadBtn.disabled = true;
+                this.input.placeholder = 'Viewing chat history (read-only)';
+
+                // Show loading state
+                this.messages.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #888;">
+                        <div class="sidebar-loading-spinner" style="margin-bottom: 20px;"></div>
+                        <div>Loading chat history...</div>
+                    </div>
+                `;
+
+                const response = await fetch(`/api/chat/history/${sessionId}`);
+                const chatHistory = await response.json();
+
+                // Clear current messages
+                this.messages.innerHTML = '';
+
+                if (chatHistory.length === 0) {
+                    this.messages.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #888;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">💬</div>
+                            <div>No messages in this chat</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Display chat history
+                chatHistory.forEach(msg => {
+                    this.addMessage(msg.content, msg.role === 'USER' ? 'user' : 'bot');
+                });
+
+                // Scroll to top of messages
+                this.messages.scrollTop = 0;
+
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                this.messages.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #ff6b6b;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+                        <div>Failed to load chat history</div>
+                        <div style="font-size: 12px; margin-top: 8px;">Please try again</div>
+                    </div>
+                `;
+            }
+        }
+
+        backToCurrentChat() {
+            this.isViewingHistory = false;
+            this.backBtn.style.display = 'none';
+
+            // Re-enable input and buttons
+            this.input.disabled = false;
+            this.sendBtn.disabled = false;
+            this.voiceBtn.disabled = false;
+            this.attachBtn.disabled = false;
+            this.uploadBtn.disabled = false;
+            this.input.placeholder = 'Type your message here...';
+
+            // Restore current chat messages
+            this.messages.innerHTML = '';
+            this.currentChatMessages.forEach(msg => {
+                this.messages.appendChild(msg);
+            });
+
+            // If no messages, show welcome message
+            if (this.currentChatMessages.length === 0) {
+                this.messages.innerHTML = `
+                    <div class="welcome-message">
+                        <h2>👋 Welcome!</h2>
+                        <p>I'm your AI Payment Assistant. How can I help you today?</p>
+                        <div class="quick-actions">
+                            <div class="quick-action" onclick="document.getElementById('input').value='show all invoices'; document.getElementById('send').click();">
+                                📋 Show all invoices
+                            </div>
+                            <div class="quick-action" onclick="document.getElementById('input').value='What payments are pending?'; document.getElementById('send').click();">
+                                ⏳ Pending payments
+                            </div>
+                            <div class="quick-action" onclick="document.getElementById('input').value='Help me with a payment'; document.getElementById('send').click();">
+                                💳 Make a payment
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         }
     }
 

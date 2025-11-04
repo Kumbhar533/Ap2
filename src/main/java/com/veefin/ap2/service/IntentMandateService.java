@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.veefin.ap2.dto.IntentMandate;
 import com.veefin.ap2.entity.IntentMandateEntity;
 import com.veefin.ap2.repository.IntentMandateRepository;
-import com.veefin.chatModel.service.PaymentProgressService;
+import com.veefin.chat_model.service.PaymentProgressService;
 import com.veefin.common.exception.ResourceNotFoundException;
 import com.veefin.common.exception.ValidationException;
 import com.veefin.invoice.entity.InvoiceData;
@@ -28,7 +28,7 @@ public class IntentMandateService {
     public void createIntentForInvoice(String uuid, String userSignedIntentJSON, String intentHash, String userSignature, String sessionId) {
 
         if (sessionId != null) {
-            paymentProgressService.logStep(sessionId, "INTENT_START", "🔄 Starting Intent Mandate creation...", true);
+            paymentProgressService.logStep(sessionId, "INTENT_START", "Starting Intent Mandate creation...", true);
         }
         InvoiceData invoice = invoiceDataService.getInvoiceById(uuid);
         if (invoice == null) {
@@ -92,7 +92,7 @@ public class IntentMandateService {
             intentRepo.save(entity);
 
             if (sessionId != null) {
-                paymentProgressService.logStep(sessionId, "INTENT_CREATED", "✅ Intent Mandate created successfully", true);
+                paymentProgressService.logStep(sessionId, "INTENT_CREATED", "Intent Mandate created successfully", true);
             }
             // 🔍 AUDIT: Intent creation successful
             auditService.logIntentEvent("CREATE", intentHash, uuid, "demo-user", true,

@@ -5,7 +5,7 @@ import com.veefin.ap2.entity.CartMandate;
 import com.veefin.ap2.entity.IntentMandateEntity;
 import com.veefin.ap2.repository.CartMandateRepository;
 import com.veefin.ap2.repository.IntentMandateRepository;
-import com.veefin.chatModel.service.PaymentProgressService;
+import com.veefin.chat_model.service.PaymentProgressService;
 import com.veefin.common.exception.ResourceNotFoundException;
 import com.veefin.invoice.entity.InvoiceData;
 import com.veefin.invoice.service.InvoiceDataService;
@@ -42,7 +42,7 @@ public class CartMandateService {
         IntentMandateEntity intent = null;
         String cartId = "PENDING";
         if (sessionId != null) {
-            paymentProgressService.logStep(sessionId, "CART_START", "🔄 Starting Cart Mandate creation...", true);
+            paymentProgressService.logStep(sessionId, "CART_START", "Starting Cart Mandate creation...", true);
         }
         try {
             // Find verified intent
@@ -102,7 +102,7 @@ public class CartMandateService {
 
             CartMandate savedCart = cartRepo.save(cart);
             if (sessionId != null) {
-                paymentProgressService.logStep(sessionId, "CART_CREATED", "✅ Cart Mandate created successfully", true);
+                paymentProgressService.logStep(sessionId, "CART_CREATED", "Cart Mandate created successfully", true);
             }
             //  AUDIT: Cart creation successful
             auditService.logCartEvent("CREATE", cartId, intent.getInvoiceUuid(), "backend-agent", true,

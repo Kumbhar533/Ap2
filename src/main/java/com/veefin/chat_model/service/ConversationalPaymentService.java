@@ -1,4 +1,4 @@
-package com.veefin.chatModel.service;
+package com.veefin.chat_model.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,12 +10,12 @@ import com.veefin.ap2.repository.IntentMandateRepository;
 import com.veefin.ap2.service.AP2Flow;
 import com.veefin.ap2.service.CartMandateService;
 import com.veefin.ap2.service.IntentMandateService;
+import com.veefin.chat_session.service.ChatHistoryService;
 import com.veefin.common.exception.ResourceNotFoundException;
 import com.veefin.common.utility.KeyGenerator;
 import com.veefin.invoice.entity.InvoiceData;
 import com.veefin.invoice.enums.InvoiceStatus;
 import com.veefin.invoice.service.InvoiceDataService;
-import com.veefin.invoice.service.InvoiceVectorService;
 import com.veefin.payment_gateway.entity.model.Card;
 import com.veefin.payment_gateway.service.CardService;
 import com.veefin.payment_gateway.service.PaymentTransactionService;
@@ -23,7 +23,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -49,147 +48,58 @@ public class ConversationalPaymentService {
     private final CardService cardService;
 
     private final ConcurrentHashMap<String, String> sessionInvoiceMemory = new ConcurrentHashMap<>();
+    private final ChatHistoryService chatHistoryService;
 
 
-    @Scheduled(fixedRate = 10 * 60 * 1000)
-    public void clearOldSessions() {
-        log.info("🧹 Clearing all session memories (every 10 min)");
-        sessionInvoiceMemory.clear();
-    }
 
     public String processUserPrompt(String userPrompt, String sessionId) {
         try {
 
-//            if (userPrompt.toLowerCase().contains("1111") || userPrompt.toLowerCase().contains("4444") ||
-//                    userPrompt.toLowerCase().contains("default") || userPrompt.toLowerCase().contains("card")) {
-//                return handleCardSelection(userPrompt, sessionId);
-//            }
-//
-//            if (userPrompt.toLowerCase().contains("yes") || userPrompt.toLowerCase().contains("confirm") || userPrompt.toLowerCase().contains("proceed")  || userPrompt.toLowerCase().contains("sure")
-//                    || userPrompt.toLowerCase().contains("cancel") || userPrompt.toLowerCase().contains("no")) {
-//                String confirmationIntent = analyzeConfirmationIntent(userPrompt);
-//                if (confirmationIntent.equals("PROCEED")) {
-//                    return showCardSelectionOptions(userPrompt, sessionId);
-//                }
-//                else if (confirmationIntent.equals("CANCEL")) {
-//                    return handlePaymentCancellation(userPrompt, sessionId);
-//                }
-//            }
-
-
+             chatHistoryService.createOrGetSession(sessionId, "demo-user", userPrompt);
             // Single AI call to analyze all intents at once
+            long startTime = System.currentTimeMillis();
             String combinedIntent = analyzeCombinedIntent(userPrompt);
+            long endTime = System.currentTimeMillis();
+            double timeTakenSeconds = (endTime - startTime) / 1000.0;
+            log.info("ChatClient response time for combined intent: {} seconds", timeTakenSeconds);
+
+            String response;
             log.info("Combined intent: {}", combinedIntent);
             switch (combinedIntent) {
                 case "CARD_SELECTION" -> {
-                    return handleCardSelection(userPrompt, sessionId);
+                    response = handleCardSelection(userPrompt, sessionId);
                 }
                 case "PAY_INVOICE" ,"PAY"->{
-                   return handlePaymentIntent(userPrompt, sessionId);
+                    response =  handlePaymentIntent(userPrompt, sessionId);
                 }
                 case "SHOW_CARDS" -> {
-                    return getCardsDisplay();
+                    response = getCardsDisplay();
                 }
                 case "PROCEED" -> {
-                    return showCardSelectionOptions(userPrompt, sessionId);
+                    response = showCardSelectionOptions(userPrompt, sessionId);
                 }
                 case "INVOICE_QUERY","INVOICE_ENQUIRY","INVOICE" -> {
-                    return invoiceDataService.handleInvoiceQuery(userPrompt);
+                    response =  invoiceDataService.handleInvoiceQuery(userPrompt);
                 }
                 case "PAYMENT_HISTORY" ,"PAYMENT_TRANSACTION", "TRANSACTION","TRANSACTION_HISTORY"-> {
-                  return  paymentTransactionService.handlePaymentQuery(userPrompt);
+                    response =  paymentTransactionService.handlePaymentQuery(userPrompt);
                 }
                 case "CANCEL" -> {
-                    return handlePaymentCancellation(userPrompt, sessionId);
+                    response = handlePaymentCancellation(userPrompt, sessionId);
                 }
                 default -> {
-                    return generateGeneralResponse(userPrompt);
+                    response = generateGeneralResponse(userPrompt);
                 }
             }
-
-
-//            String intentPrompt = String.format("""
-//    Classify the user's message into **one keyword only** from:
-//    INVOICE_ENQUIRY
-//    PAYMENT_TRANSACTION
-//    PAY_INVOICE
-//    GENERAL
-//
-//    Respond with exactly one of these keywords ONLY.
-//
-//    Message: %s
-//""", userPrompt);
-//            String  intentPrompt = String.format("""
-//Classify the following message into EXACTLY ONE of these keywords (output only the keyword, nothing else):
-//
-//INVOICE_ENQUIRY - if the user is asking about invoices, bills, or due amounts
-//PAYMENT_TRANSACTION - if the user is asking about past or recent payments, transactions, or receipts
-//GENERAL - for greetings, unrelated, or other messages
-//
-//Message: %s
-//""", userPrompt);
-//
-//            log.info("user prompt :{}",userPrompt);
-//
-//            long startTime = System.currentTimeMillis();
-//            String intent = Objects.requireNonNull(chatClient.prompt()
-//                            .user(intentPrompt)
-//                            .call()
-//                            .content())
-//                    .trim();
-//
-//            long endTime = System.currentTimeMillis();
-//            double timeTakenSeconds = (endTime - startTime) / 1000.0;
-//            log.info("ChatClient response at intent time: {} seconds", timeTakenSeconds);
-//
-//            log.info("User intent: {}", intent);
-//
-//            return switch (intent) {
-//                case "INVOICE_QUERY","INVOICE_ENQUIRY","INVOICE" -> invoiceDataService.handleInvoiceQuery(userPrompt);
-//                case "PAY_INVOICE" ,"PAY"-> handlePaymentIntent(userPrompt, sessionId);
-//                case "PAYMENT_HISTORY" ,"PAYMENT_TRANSACTION", "TRANSACTION","TRANSACTION_HISTORY"-> paymentTransactionService.handlePaymentQuery(userPrompt);
-//                default -> generateGeneralResponse(userPrompt);
-//            };
+            chatHistoryService.saveMessage(sessionId, userPrompt, response);
+            return response;
 
         } catch (Exception e) {
+            log.error(" Error: {}", e.getMessage());
             return " Error: " + e.getMessage();
         }
     }
 
-
-
-
-//    private String analyzeConfirmationIntent(String userPrompt) {
-//        String aiPrompt = String.format("""
-//                You are an AI assistant interpreting user confirmations.
-//                Determine if the user wants to CONFIRM a payment or cancel it.
-//
-//                Rules:
-//                - If the user clearly indicates agreement to pay (e.g., "yes please pay","yes pay", "confirm payment", "go ahead with payment"), respond with PROCEED.
-//                - If the user says no, cancel, or refuses payment, respond with CANCEL.
-//                - If the user is unclear or just saying 'yes' without referring to payment, respond with UNCLEAR.
-//
-//                Respond with ONLY one word: PROCEED, CANCEL, or UNCLEAR.
-//
-//                User message: "%s"
-//                """, userPrompt);
-//        try {
-//            String decision = Objects.requireNonNull(chatClient.prompt()
-//                            .user(aiPrompt)
-//                            .call()
-//                            .content())
-//                    .trim()
-//                    .toUpperCase();
-//
-//            return switch (decision) {
-//                case "PROCEED" -> "PROCEED";
-//                case "CANCEL" -> "CANCEL";
-//                default -> "UNCLEAR";
-//            };
-//        } catch (Exception e) {
-//            return "UNCLEAR";
-//        }
-//    }
 
 
     private String confirmPendingPayment(String userPrompt, String maskedNumber, String sessionId) {
@@ -252,20 +162,20 @@ User request: %s
             ap2Flow.executePaymentFlow(invoice.getUuid(), pendingCart,cardDetails.getProviderTokenId(), sessionId);
 
             return String.format("""
-            🎉 **Payment Completed Successfully!**
+             **Payment Completed Successfully!**
             
-            📋 **Transaction Receipt:**
+             **Transaction Receipt:**
             • Invoice Number: %s
             • Merchant: %s
             • Amount Paid: ₹%.2f
             • Payment Method: CARD (PayPal)
-            • Status: ✅ COMPLETED
+            • Status:  COMPLETED
             • Date/Time: %s
             
-            🔐 **Security Verified:**
-            ✅ Intent validated
-            ✅ Cart verified & signed
-            ✅ Payment processed securely
+              **Security Verified:**
+               Intent validated
+               Cart verified & signed
+               Payment processed securely
             
             --------------------------------------------------
             To view transaction history, type: "show payment history"
@@ -466,7 +376,7 @@ User request: %s
 
     private String showCardSelectionOptions(String userPrompt, String sessionId) {
         try {
-            // Step 1️⃣ Extract invoice identifier using AI
+            // Step 1 Extract invoice identifier using AI
             String extractPrompt = String.format("""
 Extract only the actual invoice identifier (e.g., INV001, ACM-2025-001, TXN45, etc.)
 from the user's request below.
@@ -516,7 +426,7 @@ User request: %s
 
             // Step 5️⃣ Final formatted message
             return String.format("""
-            💳 **Choose Payment Method for Invoice %s**
+             **Choose Payment Method for Invoice %s**
 
             **Available Cards:**
             %s
@@ -568,14 +478,14 @@ User request: %s
 
         if (allUserCards == null || allUserCards.isEmpty()) {
             return """
-        ⚠️ **No saved cards found for this user.**
+         **No saved cards found for this user.**
         You can add a card to continue with your payment.
         """;
         }
 
         StringBuilder cardDisplay = new StringBuilder();
         cardDisplay.append("""
-    💳 **Your Saved Cards**
+      **Your Saved Cards**
     ───────────────────────────────
     """);
 
@@ -584,14 +494,14 @@ User request: %s
             String alias = card.getCardAlias() != null ? card.getCardAlias() : "Card " + index;
             String network = card.getCardNetwork() != null ? card.getCardNetwork() : "Unknown";
             String type = card.getCardType() != null ? card.getCardType() : "Unknown";
-            String status = card.getIsActive() ? "🟢 Active" : "🔴 Inactive";
+            String status = card.getIsActive() ? "Active" : "Inactive";
 
             cardDisplay.append(String.format("""
         **%d️⃣ %s**
-        • 🔹 Card: **XXXX XXXX XXXX %s**
-        • 🏦 Network: %s
-        • 💼 Type: %s
-        • 🔒 Status: %s
+        •    Card: **XXXX XXXX XXXX %s**
+        •    Network: %s
+        •    Type: %s
+        •    Status: %s
         ───────────────────────────────
         """, index++, alias, card.getCardLast4(), network, type, status));
         }
@@ -649,16 +559,16 @@ User request: %s
                     }
 
                     return String.format("""
-                ❌ **Payment Cancelled**
+                  **Payment Cancelled**
                 
-                📋 **Cancelled Payment:**
+                  **Cancelled Payment:**
                 • Invoice: %s
                 • Merchant: %s
                 • Amount: ₹%.2f
                 
-                ✅ **Status:** Payment request has been cancelled successfully.
+                  **Status:** Payment request has been cancelled successfully.
                 
-                💡 **What's next?**
+                 **What's next?**
                 - You can start a new payment anytime by saying "pay invoice [number]"
                 - Type "get all invoices" to see available invoices
                 - Ask me anything else!
@@ -672,11 +582,11 @@ User request: %s
 
             // Generic cancellation message if no specific invoice found
             return """
-        ❌ **Payment Cancelled**
+           **Payment Cancelled**
         
         Your payment request has been cancelled successfully.
         
-        💡 **What's next?**
+          **What's next?**
         - Start a new payment: "pay invoice [number]"
         - View invoices: "get all invoices"  
         - Check payment history: "show payment history"

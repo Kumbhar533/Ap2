@@ -3,33 +3,25 @@
 spring:
   application:
     name: ap2-poc
-#  flyway:
-#    enabled: true
-#    locations: classpath:db/migration
-#    baseline-on-migrate: true
-#    validate-on-migrate: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+
 
 
 #  ai:
-#    openai:
-##      api-key: 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
-#     # api-key: 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
-#      api-key: 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
-#      base-url: https://openrouter.ai/api
+#    ollama:
+#      base-url: http://localhost:11434
 #      chat:
 #        options:
-#          model: openai/gpt-oss-20b:free
-
-  ai:
-    ollama:
-      base-url: http://localhost:11434
-      chat:
-        options:
-          model: llama3.2
-          max-tokens: 300
-          temperature: 0.0
-          stream: true
-          timeout: 10s
+#          model: llama3.2
+#          max-tokens: 200
+#          temperature: 0.0
+#          stream: true
+#          timeout: 10s
 
     vectorstore:
       qdrant:
@@ -44,6 +36,8 @@ spring:
           enabled: true
           data-path: "C:/qdrant/data"
           log-level: INFO
+
+        embedding-model: text-embedding-3-small
   datasource:
     url: jdbc:mysql://localhost:3306/ap2
     username: root
@@ -52,7 +46,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
@@ -63,6 +57,9 @@ spring:
 
 ghostscript:
   path: "C:/Program Files/gs/gs10.06.0/bin/gswin64c.exe"
+tesseract:
+  datapath: "C:/Program Files/Tesseract-OCR/tessdata"
+
 
 
 

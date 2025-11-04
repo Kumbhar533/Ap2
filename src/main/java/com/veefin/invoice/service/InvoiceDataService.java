@@ -49,7 +49,7 @@ public class InvoiceDataService {
         StringBuilder response = new StringBuilder();
 
         response.append("""
-                           📋**Invoice Summary**
+                           **Invoice Summary**
 
 |  Invoice No |         Merchant        |  Amount  |  Status  |  Due Date  |
 |-------------|-------------------------|----------|----------|------------|
@@ -204,7 +204,7 @@ User message (any language): %s
 Understand the message and reply ONLY using the data below.
 If it’s about invoices, show them clearly like:
 
-🧾 Invoice: [Invoice ID]
+  Invoice: [Invoice ID]
    • Amount: ₹[amount]
    • Due Date: [date]
    • Status: [status]
@@ -221,21 +221,19 @@ Data:
 //                    .content();
 
 
-            String streamedContent = String.join("", Objects.requireNonNull(chatClient.prompt()
+            String response = chatClient.prompt()
                     .user(ragPrompt)
-                    .stream()
-                    .content()
-                    .collectList()
-                    .block()));
+                    .call()
+                    .content();
 
-            System.err.println("RAG response: " + streamedContent);
+            System.err.println("RAG response: " + response);
 
 // Calculate and log time taken
             long endTime = System.currentTimeMillis();
             double timeTakenSeconds = (endTime - startTime) / 1000.0;
             log.info("ChatClient response time: {} seconds", timeTakenSeconds);
 
-            return streamedContent;
+            return response;
 
         } catch (Exception e) {
             return "Failed to process invoice query: " + e.getMessage();

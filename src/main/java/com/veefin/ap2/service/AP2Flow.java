@@ -5,7 +5,7 @@ import com.veefin.ap2.entity.AP2AuditLog;
 import com.veefin.ap2.entity.CartMandate;
 import com.veefin.ap2.entity.IntentMandateEntity;
 import com.veefin.ap2.repository.IntentMandateRepository;
-import com.veefin.chatModel.service.PaymentProgressService;
+import com.veefin.chat_model.service.PaymentProgressService;
 import com.veefin.payment_gateway.entity.dto.TransactionResponseDto;
 import com.veefin.payment_gateway.service.BrainTreeService;
 import jakarta.transaction.Transactional;
@@ -38,11 +38,11 @@ public class AP2Flow {
 
         //  Create PaymentMandate (represents internal transaction record)
         if (sessionId != null) {
-            paymentProgressService.logStep(sessionId, "PAYMENT_START", "🔄 Starting payment processing...", true);
+            paymentProgressService.logStep(sessionId, "PAYMENT_START", "Starting payment processing...", true);
         }
         PaymentMandate paymentMandate = paymentMandateService.createPaymentMandateFromCart(cart, intent);
         if (sessionId != null) {
-            paymentProgressService.logStep(sessionId, "PAYMENT_MANDATE_CREATED", "✅ Payment Mandate created successfully", true);
+            paymentProgressService.logStep(sessionId, "PAYMENT_MANDATE_CREATED", "Payment Mandate created successfully", true);
         }
 
         try {
@@ -56,7 +56,7 @@ public class AP2Flow {
                     paymentToken
             );
             if (sessionId != null) {
-                paymentProgressService.logStep(sessionId, "PAYMENT_TRANSACTION_CREATED", "✅ Transaction created successfully", true);
+                paymentProgressService.logStep(sessionId, "PAYMENT_TRANSACTION_CREATED", "Transaction created successfully", true);
             }
 
             if (txnResponse.getTransactionId() != null) {

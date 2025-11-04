@@ -27,7 +27,7 @@ public class OcrService {
     private final InvoiceParserService invoiceParserService;
     private final InvoiceVectorService invoiceVectorService;
 
-    @Value("${tesseract.datapath:C:/Program Files/Tesseract-OCR/tessdata}")
+    @Value("${tesseract.datapath:}")
     private String tesseractPath;
 
     @Value("${ghostscript.path:}")
@@ -74,14 +74,14 @@ public class OcrService {
         }
     }
 
-    @PostConstruct
-    public void init() {
-        // Set Ghostscript path if configured
-        if (!ghostscriptPath.isEmpty()) {
-            System.setProperty("jna.library.path",
-                    ghostscriptPath.substring(0, ghostscriptPath.lastIndexOf("/")));
-        }
-    }
+//    @PostConstruct
+//    public void init() {
+//        // Set Ghostscript path if configured
+//        if (!ghostscriptPath.isEmpty()) {
+//            System.setProperty("jna.library.path",
+//                    ghostscriptPath.substring(0, ghostscriptPath.lastIndexOf("/")));
+//        }
+//    }
 
 
     private String doOcr(File file) {
